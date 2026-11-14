@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="pt-BR"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Gestão de Gastos</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<style>
+body{font-family:sans-serif;margin:0;background:#f4f6f8;font-size:18px}
+header{background:#0b5563;color:#fff;padding:14px;font-size:22px}
+nav{display:flex}nav button{flex:1;padding:14px;border:0;background:#dfe7ea;font-size:17px}
+nav button.on{background:#fff;font-weight:bold}
+section{display:none;padding:16px}section.on{display:block}
+label{display:block;margin-top:12px}
+input,select{width:100%;padding:10px;font-size:18px;box-sizing:border-box}
+.btn{margin-top:16px;width:100%;padding:14px;background:#0b5563;color:#fff;border:0;font-size:18px;border-radius:8px}
+table{width:100%;border-collapse:collapse;font-size:15px;background:#fff}td,th{border-bottom:1px solid #ddd;padding:6px}
+.card{background:#fff;padding:12px;border-radius:8px;margin-top:12px}
+</style></head><body>
+<header>Gestão de Gastos</header>
+<nav><button class="on" onclick="aba(0)">Lançar</button><button onclick="aba(1)">Importar fatura</button><button onclick="aba(2)">Painel</button></nav>
+
+<section class="on">
+<label>Data<input type="date" id="data"></label>
+<label>Descrição (onde comprou)<input id="desc"></label>
+<label>Categoria<select id="cat"></select></label>
+<label>Valor (R$)<input id="valor" inputmode="decimal"></label>
+<label>Forma de pagamento<select id="forma" onchange="ver()"><option>Dinheiro</option><option>Pix</option><option>Débito</option><option>Crédito</option></select></label>
+<div id="credito" style="display:none">
+<label>Cartão<select id="cartao"></select></label>
+<label>Tipo<select id="tipo" onchange="ver()"><option>À vista</option><option>Parcelado</option></select></label>
+<label id="qtd" style="display:none">Quantas vezes<input id="vezes" type="number" min="2" value="2"></label>
+</div>
+<button class="btn" onclick="lancar()">Salvar</button>
+</section>
+
+<section>
+<label>Cartão da fatura<select id="cartaoPdf"></select></label>
+<label>Mês da fatura<input type="month" id="mesPdf"></label>
+<label>Arquivo PDF<input type="file" id="pdf" accept="application/pdf"></label>
+<button class="btn" onclick="lerPdf()">Ler fatura</button>
+<div id="previa"></div>
+</section>
+
+<section>
+<label>Mês<input type="month" id="mesPainel" onchange="painel()"></label>
+<div id="saida"></div>
+</section>
+
+<script>
+const URL_PLANILHA='https://script.google.com/macros/s/AKfycbw65dQNImBTfmNfAhkNmnUHjN0GJPB_d4k6otDGMYwZWDGwE39ZKRGM_qdHf56xFeSC/exec';
+const CARTOES=['Bradesco','Méliuz','Assaí','Mercado Pago','Amazon','Nubank'];
+const CATS=['Mercado','Combustível','Casa','Restaurante','Farmácia','Transporte','Escola','Lazer','Compras','Serviços','Outros'];
+const REGRAS=[[/assai|atacad|mercado|supermerc|hortifruti|carrefour|guanabara|prezunic/i,'Mercado'],[/posto|shell|ipiranga|petrobras|br mania/i,'Combustível'],[/drogaria|farmacia|raia|pacheco/i,'Farmácia'],[/uber|99|metro|onibus|estaciona/i,'Transporte'],[/ifood|restaur|lanch|padaria|bar |pizza|burger/i,'Restaurante'],[/amazon|shopee|magalu|mercadolivre|shein/i,'Compras'],[/netflix|spotify|claro|vivo|tim|light|enel|naturgy/i,'Serviços']];
+const IGNORAR=/pagamento|pgto|total da fatura|saldo anterior|credito de|estorno|encargos|iof|juros/i;
+const $=id=>document.getElementById(id);
+const hoje=new Date();
+$('data').valueAsDate=hoje;$('mesPdf').value=$('mesPainel').value=hoje.toISOString().slice(0,7);
+$('cat').innerHTML=CATS.map(c=>'<option>'+c+'</option>').join('');
+$('cartao').innerHTML=$('cartaoPdf').innerHTML=CARTOES.map(c=>'<option>'+c+'</option>').join('');
+let memoria=JSON.parse(localStorage.getItem('regras')||'{}');
+let itensPdf=[];
+
+function aba(n){document.querySelectorAll('nav button').forEach((b,i)=>b.classList.toggle('on',i==n));document.querySelectorAll('section').forEach((s,i)=>s.classList.toggle('on',i==n));if(n==2)painel();}
+function ver(){const c=$('forma').value=='Crédito';$('credito').style.display=c?'block':'none';$('qtd').style.display=c&&$('tipo').value=='Parcelado'?'block':'none';}
+function num(t){return parseFloat(String(t).replace(/[^\d,-]/g,'').replace(',','.'))||0;}
+function somaMes(mes,k){const[a,m]=mes.split('-').map(Number);const d=new Date(a,m-1+k,1);return d.toISOString().slice(0,7);}
+function categoria(desc){const chave=desc.toLowerCase().slice(0,12);if(memoria[chave])return memoria[chave];for(const[r,c]of REGRAS)if(r.test(desc))return c;return 'Outros';}
+function enviar(lista){return fetch(URL_PLANILHA,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify({lancamentos:lista})});}
+  function parcelasDe(l,mesInicio,k,n,v){l.parcelasLista=[];for(let i=k;i<=n;i++)l.parcelasLista.push({numero:i+'/'+n,valor:v,mes:somaMes(mesInicio,i-k)});return l;}
+
+async function lancar(){
+ const l={data:$('data').value,descricao:$('desc').value.trim(),categoria:$('cat').value,valor:num($('valor').value),forma:$('forma').value};
+ if(!l.descricao||!l.valor)return alert('Preencha descrição e valor.');
+ if(l.forma=='Crédito'){l.cartao=$('cartao').value;l.tipo=$('tipo').value;const n=l.tipo=='Parcelado'?Math.max(2,parseInt($('vezes').value)||2):1;l.parcelas=n>1?n+'x':'';
+  parcelasDe(l,somaMes(l.data.slice(0,7),1),1,n,Math.round(l.valor/n*100)/100);}
+ await enviar([l]);alert('Salvo!');$('desc').value=$('valor').value='';
+}
+
+const MESES={jan:1,fev:2,mar:3,abr:4,mai:5,jun:6,jul:7,ago:8,set:9,out:10,nov:11,dez:12};
+async function lerPdf(){
+ const f=$('pdf').files[0];if(!f)return alert('Escolha o PDF.');
+ pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+ const pdf=await pdfjsLib.getDocument({data:await f.arrayBuffer()}).promise;let linhas=[];
+ for(let p=1;p<=pdf.numPages;p++){const t=await(await pdf.getPage(p)).getTextContent();const g={};
+  t.items.forEach(it=>{const y=Math.round(it.transform[5]);(g[y]=g[y]||[]).push(it);});
+  Object.keys(g).sort((a,b)=>b-a).forEach(y=>linhas.push(g[y].sort((a,b)=>a.transform[4]-b.transform[4]).map(i=>i.str).join(' ').replace(/\s+/g,' ').trim()));}
+ const mesF=$('mesPdf').value,ano=mesF.slice(0,4);itensPdf=[];
+ const re=/^(\d{2})[\/ ](\d{2}|[A-Za-z]{3})\s+(.+?)\s+(-?\s?R?\$?\s?[\d.]+,\d{2})$/;
+ linhas.forEach(t=>{const m=t.match(re);if(!m)return;let desc=m[3];if(IGNORAR.test(desc))return;const v=num(m[4]);if(v<=0)return;
+  const mm=isNaN(m[2])?MESES[m[2].toLowerCase()]:parseInt(m[2]);const data=ano+'-'+String(mm).padStart(2,'0')+'-'+m[1];
+  const pc=desc.match(/(?:parcela\s*)?(\d{1,2})\s?(?:\/|de)\s?(\d{1,2})\s*$/i);let k=1,n=1;if(pc){k=+pc[1];n=+pc[2];desc=desc.replace(pc[0],'').trim();}
+  itensPdf.push({data,descricao:desc,valor:v,k,n,categoria:categoria(desc)});});
+ if(!itensPdf.length)return $('previa').innerHTML='<p>Não achei compras nesse PDF. Me mande um exemplo de linha da fatura que eu ajusto.</p>';
+ $('previa').innerHTML='<p>Confira e corrija antes de salvar:</p><table><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Valor</th><th>Parc.</th><th>Usar</th></tr>'+
+  itensPdf.map((it,i)=>'<tr><td>'+it.data.slice(8)+'/'+it.data.slice(5,7)+'</td><td>'+it.descricao+'</td><td><select id="c'+i+'">'+CATS.map(c=>'<option'+(c==it.categoria?' selected':'')+'>'+c+'</option>').join('')+'</select></td><td>'+it.valor.toFixed(2)+'</td><td>'+(it.n>1?it.k+'/'+it.n:'')+'</td><td><input type="checkbox" id="u'+i+'" checked style="width:auto"></td></tr>').join('')+
+  '</table><button class="btn" onclick="salvarPdf()">Salvar compras</button>';
+}
+  async function salvarPdf(){
+ const cartao=$('cartaoPdf').value,mesF=$('mesPdf').value,lista=[];
+ itensPdf.forEach((it,i)=>{if(!$('u'+i).checked)return;const cat=$('c'+i).value;
+  if(cat!=it.categoria)memoria[it.descricao.toLowerCase().slice(0,12)]=cat;
+  const l={data:it.data,descricao:it.descricao,categoria:cat,valor:it.valor,forma:'Crédito',cartao,tipo:it.n>1?'Parcelado':'À vista',parcelas:it.n>1?it.k+'/'+it.n:''};
+  lista.push(parcelasDe(l,mesF,it.k,it.n,it.valor));});
+ localStorage.setItem('regras',JSON.stringify(memoria));
+ await enviar(lista);$('previa').innerHTML='<p>'+lista.length+' compras salvas!</p>';
+}
+
+async function painel(){
+ $('saida').innerHTML='Carregando...';const d=await(await fetch(URL_PLANILHA)).json();
+ const mes=$('mesPainel').value,ant=somaMes(mes,-1);
+ const itens=[];
+ d.lancamentos.slice(1).forEach(r=>{if(r[4]!='Crédito')itens.push({mes:String(r[0]).slice(0,7),desc:r[1],cat:r[2],valor:+r[3],forma:r[4]});});
+ const catDe={};d.lancamentos.slice(1).forEach(r=>catDe[r[1]]=r[2]);
+ d.parcelas.slice(1).forEach(r=>itens.push({mes:String(r[5]).slice(0,7),desc:r[1],cat:catDe[r[1]]||'Outros',valor:+r[4],forma:r[2]}));
+ const doMes=itens.filter(i=>i.mes==mes),doAnt=itens.filter(i=>i.mes==ant);
+ const soma=(l,ch)=>{const o={};l.forEach(i=>o[i[ch]]=(o[i[ch]]||0)+i.valor);return Object.entries(o).sort((a,b)=>b[1]-a[1]);};
+ const tot=l=>l.reduce((s,i)=>s+i.valor,0),R=v=>'R$ '+v.toFixed(2).replace('.',',');
+ const antCat=Object.fromEntries(soma(doAnt,'cat'));
+ const bloco=(t,l,comp)=>'<div class="card"><b>'+t+'</b><table>'+l.slice(0,5).map(([k,v])=>'<tr><td>'+k+'</td><td>'+R(v)+'</td>'+(comp?'<td>'+(antCat[k]?(v>antCat[k]?'subiu':'caiu'):'novo')+'</td>':'')+'</tr>').join('')+'</table></div>';
+ $('saida').innerHTML='<div class="card"><b>Total do mês: '+R(tot(doMes))+'</b><br>Mês anterior: '+R(tot(doAnt))+'</div>'+
+  bloco('Maiores ofensores por categoria',soma(doMes,'cat'),true)+bloco('Onde mais gastou',soma(doMes,'desc'))+bloco('Por cartão ou forma de pagamento',soma(doMes,'forma'));
+}
+</script></body></html>
