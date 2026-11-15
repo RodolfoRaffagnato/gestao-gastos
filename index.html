@@ -280,6 +280,8 @@ details.mini summary{cursor:pointer;font-weight:500;font-size:.9rem;color:var(--
 .vencbox{display:flex;align-items:center;gap:6px;flex:none}
 label.diac{flex-direction:row;align-items:center;gap:6px;font-size:.8125rem}
 label.diac input{width:56px;height:40px;padding:0;text-align:center;font-weight:600}
+label.diac input.mudou{border-color:var(--fg);background:var(--surface)}
+#salvarVenc{position:sticky;bottom:calc(var(--tabbar) + 12px + env(safe-area-inset-bottom,0px));z-index:5;box-shadow:0 6px 20px rgba(0,0,0,.18)}
 #listaFixas .itemcfg:last-child{border-bottom:0}
 .pagobar{display:grid;padding-top:4px}
 .pagobar .linha{padding:8px 0}
@@ -391,6 +393,7 @@ label.diac input{width:56px;height:40px;padding:0;text-align:center;font-weight:
 <div class="card grid" style="margin-top:16px" id="fixasBox">
   <div><h2 style="margin:0 0 4px">Contas fixas e vencimentos</h2><p class="dica">Digite o dia em que cada conta vence. As datas dos cartões vêm sozinhas das faturas.</p></div>
   <div id="listaFixas"></div>
+  <button class="btn" id="salvarVenc" type="button" hidden>Salvar vencimentos</button>
   <div class="novocfg grid" style="margin-top:0">
     <h3>Nova conta fixa</h3>
     <div class="dois"><label>Nome<input id="nfNome" placeholder="Ex.: Academia"></label><label>Dia de vencimento<input id="nfDia" inputmode="numeric" placeholder="Ex.: 10"></label></div>
@@ -670,8 +673,8 @@ const tokenApp=()=>{if(tokenMem)return tokenMem;try{return localStorage.getItem(
 function guardarToken(t,lembrar){tokenMem=t;try{localStorage.removeItem('gg_token');sessionStorage.removeItem('gg_token');(lembrar?localStorage:sessionStorage).setItem('gg_token',t)}catch(e){}}
 function esquecerToken(){tokenMem=null;try{localStorage.removeItem('gg_token');sessionStorage.removeItem('gg_token')}catch(e){}}
 const nomeAparelho=()=>{const u=navigator.userAgent;return(/iphone|ipad/i.test(u)?'iPhone':/android/i.test(u)?'Android':/windows/i.test(u)?'Windows':/mac/i.test(u)?'Mac':'Aparelho')+' · '+new Date().toLocaleDateString('pt-BR')};
-async function api(corpo){
-  const ctl=new AbortController(),t=setTimeout(()=>ctl.abort(),30000);let r;
+async function api(corpo,opc={}){
+  const ctl=new AbortController(),t=setTimeout(()=>ctl.abort(),opc.tempo||30000);let r;
   try{r=await fetch(URL_PLANILHA,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({...corpo,token:tokenApp()}),signal:ctl.signal})}
   catch(e){const err=new Error(e.name==='AbortError'?'A planilha demorou demais para responder.':'Sem conexão com a planilha. Confira a internet.');err.rede=true;throw err}
   finally{clearTimeout(t)}
@@ -884,10 +887,18 @@ function mesDaFatura(cartao,data){
   const dia=+String(data).slice(8,10),fechaDepois=dia>=+c.fech?1:0;
   return somaMes(base,fechaDepois+(+c.venc>+c.fech?0:1));
 }
+const assinaturaDatas=c=>JSON.stringify([c.categorias.filter(x=>x.tipo==='Fixa').map(x=>[x.nome,x.venc||'']),c.cartoes.map(x=>[x.nome,x.venc||''])]);
+let agendaFundo=false;
+async function atualizarAgendaFundo(){if(MODO_TESTE||agendaFundo)return;agendaFundo=true;
+  try{const j=await api({acao:'agenda'},{tempo:180000});if(j&&'agenda' in j){AGENDA=j.agenda;toast('Lembretes da Agenda atualizados.')}}
+  catch(e){toast('Os vencimentos foram salvos, mas a Agenda não atualizou agora. Toque em "Atualizar lembretes agora" na aba Contas.')}
+  finally{agendaFundo=false;if(typeof atualizarAgendaInfo==='function')atualizarAgendaInfo()}}
 async function salvarConfig(novo,renomear={}){
+  const mudouDatas=assinaturaDatas(CFG)!==assinaturaDatas(novo);
   if(!MODO_TESTE){let j=null;
     try{j=await api({acao:'config',categorias:novo.categorias,cartoes:novo.cartoes,renomear})}catch(e){if(!(e.rede&&PODE_TESTE))throw e;ativarTeste()}
-    if(!MODO_TESTE&&!j.config)throw new Error('Para editar categorias e cartões, atualize o Apps Script da planilha.')}
+    if(!MODO_TESTE&&!j.config)throw new Error('Para editar categorias e cartões, atualize o Apps Script da planilha.');
+    if(!MODO_TESTE&&mudouDatas&&(j.agendaAtiva||(AGENDA&&AGENDA.n!=null)))setTimeout(atualizarAgendaFundo,50)}
   if(MODO_TESTE){const d=lerLocal(),troca=(lin,col,pares)=>lin.forEach(l=>(pares||[]).forEach(([de,para])=>{if(l[col]===de)l[col]=para}));
     troca(d.lanc,2,renomear.categorias);troca(d.lanc,5,renomear.cartoes);troca(d.parc,2,renomear.cartoes);gravarLocal()}
   const mudadas={};(renomear.categorias||[]).forEach(([de,para])=>{for(const k in memoria)if(memoria[k]===de){memoria[k]=para;mudadas[k]=para}});enviarRegras(mudadas);
@@ -901,7 +912,7 @@ function mostrarAj(v){['ajMain','ajCats','ajCartoes'].forEach(id=>$(id).hidden=i
 $('abrirCats').onclick=()=>mostrarAj('ajCats');$('abrirCartoes').onclick=()=>mostrarAj('ajCartoes');
 document.querySelectorAll('[data-voltar]').forEach(b=>b.onclick=()=>{mostrarAj('ajMain');atualizarAjustes()});
 let cfgOcupado=false;
-async function mudarCfg(novo,ren,msg,depois){if(cfgOcupado)return;cfgOcupado=true;
+async function mudarCfg(novo,ren,msg,depois){if(cfgOcupado){toast('Aguarde, ainda estou salvando a alteração anterior.');return}cfgOcupado=true;
   try{await salvarConfig(novo,ren);toast(msg)}catch(e){toast(e.message)}finally{cfgOcupado=false;depois()}}
 function confirmar(b,txt,acao){if(!b.classList.contains('conf')){b.dataset.ic=b.innerHTML;b.classList.add('conf');b.textContent=txt;setTimeout(()=>{if(b.isConnected&&b.classList.contains('conf')){b.classList.remove('conf');b.innerHTML=b.dataset.ic}},4000);return}acao()}
 const nomeRepetido=(lista,nome,ignorar)=>lista.some((c,i)=>i!==ignorar&&semAcento(c.nome)===semAcento(nome));
@@ -1041,20 +1052,29 @@ async function contas(){
   atualizarAgendaInfo();
 }
 // contas fixas e vencimentos (só contas fixas)
+let rascunhoVenc={}; // dias digitados e ainda não salvos (por nome da conta)
 function renderFixas(){
   const fixas=CFG.categorias.map((c,i)=>[c,i]).filter(([c])=>c.tipo==='Fixa');
-  $('listaFixas').innerHTML=fixas.length?fixas.map(([c,i])=>`<div class="itemcfg"><span class="n">${esc(c.nome)}</span><span class="vencbox"><label class="diac">Dia<input inputmode="numeric" maxlength="2" value="${c.venc||''}" placeholder="–" data-vencfix="${i}" aria-label="Dia de vencimento de ${esc(c.nome)}"></label><span class="bts"><button type="button" class="x" data-delfix="${i}" aria-label="Excluir ${esc(c.nome)}">${IC_LIXO}</button></span></span></div>`).join('')
+  $('listaFixas').innerHTML=fixas.length?fixas.map(([c,i])=>{const v=c.nome in rascunhoVenc?rascunhoVenc[c.nome]:(c.venc||'');
+    return`<div class="itemcfg"><span class="n">${esc(c.nome)}</span><span class="vencbox"><label class="diac">Dia<input inputmode="numeric" maxlength="2" value="${esc(v)}" placeholder="–" data-vencfix="${esc(c.nome)}" aria-label="Dia de vencimento de ${esc(c.nome)}"${c.nome in rascunhoVenc?' class="mudou"':''}></label><span class="bts"><button type="button" class="x" data-delfix="${i}" aria-label="Excluir ${esc(c.nome)}">${IC_LIXO}</button></span></span></div>`}).join('')
     :'<p class="dica">Nenhuma conta fixa ainda. Cadastre a primeira abaixo.</p>';
   const L=$('listaFixas');
-  L.querySelectorAll('[data-vencfix]').forEach(inp=>{inp.onchange=()=>{const i=+inp.dataset.vencfix,v=diaValido(inp.value.trim());
-    if(Number.isNaN(v)){toast('O dia de vencimento precisa ser de 1 a 31.');inp.value=CFG.categorias[i].venc||'';return}
-    if(String(v)===String(CFG.categorias[i].venc||''))return;const novo=copiaCfg();novo.categorias[i].venc=v;
-    mudarCfg(novo,{},v?`${novo.categorias[i].nome} vence dia ${v}.`:`${novo.categorias[i].nome} ficou sem dia de vencimento.`,()=>contas())};
-    inp.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();inp.blur()}}});
-  L.querySelectorAll('[data-delfix]').forEach(b=>b.onclick=()=>confirmar(b,'Excluir?',()=>{const i=+b.dataset.delfix,novo=copiaCfg(),antigo=novo.categorias[i].nome;novo.categorias.splice(i,1);
+  L.querySelectorAll('[data-vencfix]').forEach(inp=>{inp.oninput=()=>{const nome=inp.dataset.vencfix,orig=String(CFG.categorias.find(c=>c.nome===nome)?.venc||'');
+      inp.value=inp.value.replace(/\D/g,'').slice(0,2);if(inp.value===orig)delete rascunhoVenc[nome];else rascunhoVenc[nome]=inp.value;inp.classList.toggle('mudou',nome in rascunhoVenc);botaoVencimentos()};
+    inp.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();$('salvarVenc').click()}}});
+  L.querySelectorAll('[data-delfix]').forEach(b=>b.onclick=()=>confirmar(b,'Excluir?',()=>{const i=+b.dataset.delfix,novo=copiaCfg(),antigo=novo.categorias[i].nome;novo.categorias.splice(i,1);delete rascunhoVenc[antigo];
     if(!novo.categorias.some(c=>c.nome==='Outros'))novo.categorias.push({nome:'Outros',tipo:'Variável',venc:''});
     mudarCfg(novo,{categorias:[[antigo,'Outros']]},`${antigo} excluída. Os lançamentos dela foram para Outros.`,()=>contas())}));
+  botaoVencimentos();
 }
+function botaoVencimentos(){const n=Object.keys(rascunhoVenc).length,b=$('salvarVenc');b.hidden=!n;b.textContent=n===1?'Salvar 1 vencimento':`Salvar ${n} vencimentos`}
+$('salvarVenc').onclick=async()=>{const nomes=Object.keys(rascunhoVenc);if(!nomes.length||cfgOcupado)return;
+  const novo=copiaCfg();
+  for(const nome of nomes){const v=diaValido(rascunhoVenc[nome]);if(Number.isNaN(v)){toast(`${nome}: o dia precisa ser de 1 a 31.`);return}const c=novo.categorias.find(x=>x.nome===nome);if(c)c.venc=v}
+  const b=$('salvarVenc');b.disabled=true;b.textContent='Salvando…';cfgOcupado=true;
+  try{await salvarConfig(novo,{});rascunhoVenc={};toast(nomes.length===1?'Vencimento salvo.':`${nomes.length} vencimentos salvos.`)}
+  catch(e){toast(e.message+' O que você digitou continua na tela; tente salvar de novo.')}
+  finally{cfgOcupado=false;b.disabled=false;contas()}};
 $('nfAdd').onclick=()=>{const nome=$('nfNome').value.trim(),dia=diaValido($('nfDia').value.trim());
   if(!nome){toast('Digite o nome da conta.');$('nfNome').focus();return}
   if(Number.isNaN(dia)){toast('O dia de vencimento precisa ser de 1 a 31.');return}
@@ -1067,8 +1087,8 @@ $('nfAdd').onclick=()=>{const nome=$('nfNome').value.trim(),dia=diaValido($('nfD
 function atualizarAgendaInfo(){const ativa=!!(AGENDA&&AGENDA.n!=null);
   $('agendaInfo').textContent=MODO_TESTE?'Os lembretes na Agenda funcionam no app publicado.':ativa?`Ativados: ${AGENDA.n} ${AGENDA.n===1?'vencimento':'vencimentos'} na agenda "Contas a pagar", com aviso 5 dias e 2 dias antes, às 9h. Mudou um vencimento? Eles se atualizam sozinhos.`:'Crie os vencimentos na sua Agenda do Google, com aviso no celular 5 dias e 2 dias antes, mesmo com o app fechado.';
   $('btnAgenda').textContent=ativa?'Atualizar lembretes agora':'Ativar lembretes na Agenda';$('btnAgendaOff').hidden=!ativa||MODO_TESTE;$('btnAgenda').disabled=MODO_TESTE}
-$('btnAgenda').onclick=async()=>{const b=$('btnAgenda');b.disabled=true;b.textContent='Criando lembretes…';
-  try{const j=await api({acao:'agenda'});if(!('agenda' in j))throw new Error('Para os lembretes, atualize o Apps Script da planilha.');AGENDA=j.agenda;toast(`${AGENDA.n} lembretes criados na Agenda do Google.`)}
+$('btnAgenda').onclick=async()=>{const b=$('btnAgenda');b.disabled=true;b.textContent='Criando lembretes… pode levar até 1 minuto';
+  try{const j=await api({acao:'agenda'},{tempo:180000});if(!('agenda' in j))throw new Error('Para os lembretes, atualize o Apps Script da planilha.');AGENDA=j.agenda;toast(`${AGENDA.n} lembretes criados na Agenda do Google.`)}
   catch(e){toast(/autoriz|permiss|calendar/i.test(e.message)?'Autorize a Agenda no Apps Script (veja o passo a passo no chat).':e.message)}finally{atualizarAgendaInfo()}};
 $('btnAgendaOff').onclick=async()=>{const b=$('btnAgendaOff');b.disabled=true;try{await api({acao:'agenda',desligar:true});AGENDA=null;toast('Lembretes removidos da Agenda.')}catch(e){toast(e.message)}finally{b.disabled=false;atualizarAgendaInfo()}};
 // alertas no app: 5 e 2 dias antes
