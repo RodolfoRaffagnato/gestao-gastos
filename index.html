@@ -288,6 +288,14 @@ label.diac input.mudou{border-color:var(--fg);background:var(--surface)}
 .lanc.fat{grid-template-columns:minmax(0,1fr) auto}
 .lanc.fat .marcar{grid-column:2;grid-row:3;justify-self:end;margin-top:6px;border:0;background:var(--field);color:var(--fg);font-weight:600;font-size:.75rem;padding:6px 10px;border-radius:8px;cursor:pointer}
 .lanc.fat.paga .num{color:var(--muted)}
+.p4{background:repeating-linear-gradient(135deg,var(--fg) 0 2px,var(--muted-2) 2px 5px)}
+.p5{background:var(--surface);box-shadow:inset 0 0 0 2px var(--muted-2)}
+.parte.extra .rot,.parte.extra .num{color:var(--muted)}
+.itemcfg.fixa{flex-wrap:wrap;row-gap:8px}
+.itemcfg.fixa .n{flex:1 1 120px}
+label.diac.valor input{width:92px;text-align:right;padding-right:10px}
+.conta .prev{display:block;font-size:.7rem;font-weight:500;color:var(--muted);text-align:right}
+.conta .marcar.forte{background:var(--fg);color:var(--inverse)}
 .toast{position:fixed;left:50%;bottom:calc(var(--tabbar) + 16px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--fg);color:var(--inverse);padding:12px 18px;border-radius:14px;font-weight:500;font-size:.9rem;max-width:calc(100% - 32px);text-align:center;box-shadow:0 8px 24px rgba(0,0,0,.2);z-index:40}
 @media (prefers-reduced-motion:no-preference){.toast{animation:sobe .2s ease-out}@keyframes sobe{from{opacity:0;transform:translate(-50%,8px)}}}
 
@@ -304,6 +312,23 @@ label.diac input.mudou{border-color:var(--fg);background:var(--surface)}
   #previa td:nth-child(5){grid-column:3;grid-row:2;font-weight:600}
   #previa td:nth-child(4){grid-column:2/4;grid-row:3}
 }
+.seg{margin:-4px 0 14px}
+.cab2{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:4px}.cab2 h2{margin:0}
+.link{background:none;border:0;padding:6px 0;color:var(--muted);font:500 .875rem var(--font);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.voltar{display:inline-flex;align-items:center;gap:4px;background:none;border:0;padding:8px 0;margin:-6px 0 2px;color:var(--muted);font:500 .9rem var(--font);cursor:pointer}
+.voltar svg{width:18px;height:18px}
+.linha.sub2{padding-top:0;margin-top:-4px;color:var(--muted);font-size:.8125rem}
+.grande.neg,.neg{color:var(--bad)}.pos{color:var(--good)}
+.dica-box{display:grid;gap:10px;padding-top:4px}
+.meses3{display:grid;gap:14px;margin-top:12px}
+.m3{display:grid;gap:6px;padding-top:12px;border-top:1px solid var(--line)}.m3:first-child{border-top:0;padding-top:0}
+.m3cab{display:flex;justify-content:space-between;gap:8px;font-size:.9375rem}.m3cab span{font-weight:600;font-size:.875rem}
+.m3barra{display:grid;grid-template-columns:68px minmax(0,1fr) auto;align-items:center;gap:10px;font-size:.8125rem;color:var(--muted)}
+.m3barra i{display:block;height:8px;border-radius:99px;min-width:3px}.m3barra i.sai{background:var(--fg)}.m3barra i.ent{background:var(--good)}
+.m3barra b{color:var(--fg);font-weight:600;font-variant-numeric:tabular-nums;text-align:right;min-width:88px}
+button.card.ir{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;text-align:left;cursor:pointer;font:inherit;color:var(--fg)}
+button.card.ir>span{display:grid;gap:3px}button.card.ir svg{color:var(--muted-2);flex:none}
+.opc{font-weight:400;color:var(--muted-2)}
 </style>
 
 <div class="travaApp" id="travaApp" hidden>
@@ -327,14 +352,24 @@ label.diac input.mudou{border-color:var(--fg);background:var(--surface)}
 <div class="alertas" id="alertas" hidden></div>
 <div class="aviso fila" id="avisoFila" hidden><span id="filaTexto"></span><button type="button" id="filaEnviar">Enviar agora</button></div>
 
-<section data-sec="0">
-<h2 class="titulo">Novo lançamento</h2>
+<section data-sec="5">
+<h2 class="titulo">Este mês</h2>
+<div id="inicioBox" class="grid"></div>
+</section>
+
+<section data-sec="0" hidden>
+<h2 class="titulo" id="tituloLancar">Novo gasto</h2>
+<div class="chips seg" id="modoLanc" role="radiogroup" aria-label="O que lançar">
+  <label><input type="radio" name="modoLanc" value="gasto" checked><span>Gasto</span></label>
+  <label><input type="radio" name="modoLanc" value="entrada"><span>Entrada</span></label>
+  <label><input type="radio" name="modoLanc" value="fatura"><span>Fatura</span></label>
+</div>
 <form class="card grid" id="form">
   <div class="dois">
     <label>Valor<input id="valor" inputmode="decimal" placeholder="R$ 0,00"></label>
     <label>Data da compra<input type="date" id="data"></label>
   </div>
-  <label>Onde comprou<input id="desc" placeholder="Ex.: Assaí Barra" list="sugestoes" autocomplete="off"></label>
+  <label><span>Onde comprou <span class="opc" id="descOpc" hidden>(opcional)</span></span><input id="desc" placeholder="Ex.: Assaí Barra" list="sugestoes" autocomplete="off"></label>
   <datalist id="sugestoes"></datalist>
   <label>Categoria<select id="cat"></select></label>
   <div class="grupo"><span class="t">Forma de pagamento</span>
@@ -353,10 +388,18 @@ label.diac input.mudou{border-color:var(--fg);background:var(--surface)}
   <button class="btn" id="btnSalvar" type="button">Salvar lançamento</button>
   <p class="dica" id="statusSalvar" role="status" aria-live="polite"></p>
 </form>
-</section>
-
-<section data-sec="1" hidden>
-<h2 class="titulo">Importar fatura</h2>
+<div class="card grid" id="formEntrada" hidden>
+  <div class="dois">
+    <label>Valor recebido<input id="enValor" inputmode="decimal" placeholder="R$ 0,00"></label>
+    <label>Data<input type="date" id="enData"></label>
+  </div>
+  <label>Tipo de entrada<select id="enCat"></select></label>
+  <label><span>Descrição <span class="opc">(opcional)</span></span><input id="enDesc" placeholder="Ex.: Salário de novembro" autocomplete="off"></label>
+  <button class="btn" id="enSalvar" type="button">Salvar entrada</button>
+  <p class="dica" id="enStatus" role="status" aria-live="polite"></p>
+  <p class="dica">Salário que entra todo mês? Cadastre em Contas › Entradas fixas e ele aparece sozinho na sobra do mês.</p>
+</div>
+<div id="blocoFatura" hidden>
 <div class="card grid">
   <label>Arquivo PDF da fatura<input type="file" id="pdf" accept="application/pdf"></label>
   <div class="dois">
@@ -367,10 +410,12 @@ label.diac input.mudou{border-color:var(--fg);background:var(--surface)}
   <p class="dica">O cartão e o mês são reconhecidos sozinhos. O pagamento da fatura anterior fica de fora, a soma é conferida com o total do banco e as parcelas que faltam vão para os meses seguintes.</p>
 </div>
 <div id="previa"></div>
+</div>
 </section>
 
 <section data-sec="2" hidden>
-<h2 class="titulo">Painel do mês</h2>
+<button class="voltar" type="button" data-ir="5"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m15 6-6 6 6 6"/></svg>Início</button>
+<h2 class="titulo">Para onde vai o dinheiro</h2>
 <div class="busca"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input type="search" id="busca" placeholder="Buscar compras, categorias ou cartões" aria-label="Buscar lançamentos"></div>
 <div id="resBusca" hidden></div>
 <div class="mesnav" id="mesnavBox">
@@ -390,13 +435,25 @@ label.diac input.mudou{border-color:var(--fg);background:var(--surface)}
 </div>
 <div id="contasLista" class="grid"></div>
 <div class="card grid" style="margin-top:16px" id="fixasBox">
-  <div><h2 style="margin:0 0 4px">Contas fixas e vencimentos</h2><p class="dica">Digite o dia em que cada conta vence. As datas dos cartões vêm sozinhas das faturas.</p></div>
+  <div><h2 style="margin:0 0 4px">Contas fixas e vencimentos</h2><p class="dica">Digite o dia e o valor de cada conta. Elas se repetem todo mês com esse valor até você pagar; na hora de pagar dá para ajustar. As datas dos cartões vêm sozinhas das faturas.</p></div>
   <div id="listaFixas"></div>
   <button class="btn" id="salvarVenc" type="button" hidden>Salvar vencimentos</button>
   <div class="novocfg grid" style="margin-top:0">
     <h3>Nova conta fixa</h3>
-    <div class="dois"><label>Nome<input id="nfNome" placeholder="Ex.: Academia"></label><label>Dia de vencimento<input id="nfDia" inputmode="numeric" placeholder="Ex.: 10"></label></div>
+    <label>Nome<input id="nfNome" placeholder="Ex.: Academia"></label>
+    <div class="dois"><label>Dia de vencimento<input id="nfDia" inputmode="numeric" placeholder="Ex.: 10"></label><label>Valor por mês<input id="nfValor" inputmode="decimal" placeholder="R$ 0,00"></label></div>
     <button class="btn" id="nfAdd" type="button">Adicionar conta fixa</button>
+  </div>
+</div>
+<div class="card grid" style="margin-top:16px" id="entradasBox">
+  <div><h2 style="margin:0 0 4px">Entradas fixas</h2><p class="dica">Salário e outros valores que entram todo mês. Com eles, o Início mostra quanto sobra. Na hora de receber dá para ajustar o valor.</p></div>
+  <div id="listaEntradas"></div>
+  <button class="btn" id="salvarEnt" type="button" hidden>Salvar</button>
+  <div class="novocfg grid" style="margin-top:0">
+    <h3>Nova entrada fixa</h3>
+    <label>Nome<input id="neNome" placeholder="Ex.: Salário"></label>
+    <div class="dois"><label>Dia que cai<input id="neDia" inputmode="numeric" placeholder="Ex.: 5"></label><label>Valor por mês<input id="neValor" inputmode="decimal" placeholder="R$ 0,00"></label></div>
+    <button class="btn" id="neAdd" type="button">Adicionar entrada fixa</button>
   </div>
 </div>
 <div class="card grid" style="margin-top:16px">
@@ -465,9 +522,8 @@ label.diac input.mudou{border-color:var(--fg);background:var(--surface)}
 </div>
 
 <nav class="tabbar" role="tablist" aria-label="Seções do app"><div class="in">
-  <button role="tab" aria-selected="true" data-aba="0"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg></span>Lançar</button>
-  <button role="tab" aria-selected="false" data-aba="1"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6M9 16h3"/></svg></span>Faturas</button>
-  <button role="tab" aria-selected="false" data-aba="2"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 20h16"/><path d="M7 16V11M12 16V6M17 16v-7"/></svg></span>Painel</button>
+  <button role="tab" aria-selected="true" data-aba="5"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10.5 12 4l8 6.5V19a1.5 1.5 0 0 1-1.5 1.5H15v-6H9v6H5.5A1.5 1.5 0 0 1 4 19z"/></svg></span>Início</button>
+  <button role="tab" aria-selected="false" data-aba="0"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg></span>Lançar</button>
   <button role="tab" aria-selected="false" data-aba="4"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/><path d="m9 15 2 2 4-4"/></svg></span>Contas</button>
   <button role="tab" aria-selected="false" data-aba="3"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 17 6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg></span>Investir</button>
 </div></nav>
@@ -509,7 +565,7 @@ label.diac input.mudou{border-color:var(--fg);background:var(--surface)}
     <button class="btn sec peq" id="ajLimparRegras" type="button">Apagar</button></div>
   </div>
   <div class="ajuste">
-    <div class="lin"><div><h3>Versão</h3><p class="dica">Gestão de Gastos 2.3</p></div></div>
+    <div class="lin"><div><h3>Versão</h3><p class="dica">Gestão de Gastos 2.5</p></div></div>
   </div>
   </div>
   <div id="ajCats" hidden>
@@ -518,7 +574,7 @@ label.diac input.mudou{border-color:var(--fg);background:var(--surface)}
     <div class="novocfg grid">
       <h3>Nova categoria</h3>
       <label>Nome<input id="novaCat" placeholder="Ex.: Academia"></label>
-      <div class="chips"><label><input type="radio" name="novaCatTipo" value="Fixa" checked><span>Conta fixa</span></label><label><input type="radio" name="novaCatTipo" value="Variável"><span>Conta variável</span></label></div>
+      <div class="chips"><label><input type="radio" name="novaCatTipo" value="Fixa" checked><span>Conta fixa</span></label><label><input type="radio" name="novaCatTipo" value="Variável"><span>Conta variável</span></label><label><input type="radio" name="novaCatTipo" value="Entrada"><span>Entrada</span></label></div>
       <button class="btn" id="addCat" type="button">Adicionar categoria</button>
       <p class="dica">Ao renomear, os lançamentos antigos mudam junto. Ao excluir, eles vão para Outros. O dia de vencimento das contas fixas fica na aba Contas.</p>
     </div>
@@ -537,12 +593,27 @@ label.diac input.mudou{border-color:var(--fg);background:var(--surface)}
 </div>
 </div>
 
+<div class="veu" id="pagar" hidden>
+<div class="folha" role="dialog" aria-modal="true" aria-labelledby="pgTitulo">
+  <div class="alca" aria-hidden="true"></div>
+  <div class="cab"><h2 id="pgTitulo">Pagar conta</h2><button class="iconbtn" id="pgFechar" type="button" aria-label="Fechar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
+  <div class="grid">
+    <p class="dica" id="pgInfo"></p>
+    <div class="dois"><label><span id="pgRotValor">Valor pago</span><input id="pgValor" inputmode="decimal"></label><label>Data do pagamento<input type="date" id="pgData"></label></div>
+    <label id="pgBoxForma">Forma de pagamento<select id="pgForma"><option>Pix</option><option>Débito</option><option>Dinheiro</option></select></label>
+    <label class="check" id="pgBoxFixo" hidden><input type="checkbox" id="pgFixo"> Usar este valor nos próximos meses</label>
+    <div class="dois"><button class="btn" id="pgConfirmar" type="button">Confirmar pagamento</button><button class="btn sec" id="pgCancelar" type="button">Cancelar</button></div>
+    <p class="dica" id="pgStatus" role="status" aria-live="polite"></p>
+  </div>
+</div>
+</div>
+
 <div class="veu" id="editar" hidden>
 <div class="folha" role="dialog" aria-modal="true" aria-labelledby="edTitulo">
   <div class="alca" aria-hidden="true"></div>
   <div class="cab"><h2 id="edTitulo">Editar lançamento</h2><button class="iconbtn" id="edFechar" type="button" aria-label="Fechar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
   <div class="grid">
-    <label>Onde comprou<input id="edDesc"></label>
+    <label>Descrição<input id="edDesc"></label>
     <label>Categoria<select id="edCat"></select></label>
     <div class="grid" id="edVista">
       <div class="dois"><label>Valor<input id="edValor" inputmode="decimal"></label><label>Data<input type="date" id="edData"></label></div>
@@ -719,7 +790,7 @@ $('taEntrar').onclick=entrarNoApp;
 ['taSenha','taSenha2'].forEach(id=>$(id).addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();entrarNoApp()}}));
 // travar o app: ao voltar depois de mais de 1 minuto em segundo plano
 function travarApp(msg){const t=tokenApp();esquecerToken();if(t&&!MODO_TESTE)api({acao:'sair',token:t}).catch(()=>{});
-  if(!$('ajustes').hidden)fecharAjustes();if(!$('editar').hidden)fecharEditar();travarInv?.();prepararTrava(msg)}
+  if(!$('ajustes').hidden)fecharAjustes();if(!$('editar').hidden)fecharEditar();if(!$('pagar').hidden)fecharPagar();travarInv?.();prepararTrava(msg)}
 let ocultoEm=0;
 document.addEventListener('visibilitychange',()=>{if(document.hidden){ocultoEm=Date.now();return}
   if(ocultoEm&&Date.now()-ocultoEm>60000&&$('travaApp').hidden&&tokenApp())travarApp('O app ficou parado. Digite a senha para continuar.');ocultoEm=0});
@@ -773,7 +844,7 @@ async function buscar(){
   const d=ultimosDados,dia=v=>String(v).slice(0,10),itens=[];
   d.lanc.forEach(r=>{if(!r[1])return;const cred=r[4]==='Crédito';if(!semAcento([r[1],r[2],r[4],r[5]].join(' ')).includes(q))return;
     const n=+((String(r[7]).match(/de\s*(\d+)/)||String(r[7]).match(/(\d+)\s*x/)||[])[1])||1;
-    itens.push({data:dia(r[0]),desc:r[1],cat:r[2],valor:+r[3]||0,valorTotal:+r[3]||0,onde:cred?r[5]:r[4],n,
+    itens.push({data:dia(r[0]),desc:r[1],cat:r[2],valor:+r[3]||0,valorTotal:+r[3]||0,onde:cred?r[5]:r[4],n,entrada:r[4]==='Entrada',
       info:cred?`${r[5]} · ${r[6]==='Parcelado'&&r[7]?'parcelado '+r[7]:'à vista'}`:r[4],chave:{data:dia(r[0]),descricao:r[1],cartao:cred?r[5]:''}})});
   itens.sort((a,b)=>b.data.localeCompare(a.data));const total=itens.reduce((x,i)=>x+i.valor,0),mostra=itens.slice(0,100);
   res.innerHTML=`<div class="card"><h2>${itens.length} ${itens.length===1?'resultado':'resultados'}</h2>
@@ -786,7 +857,9 @@ async function buscar(){
 function atualizarDepoisDeMudar(){ultimosDados=null;if($('busca').value.trim().length>=2)buscar();else painel()}
 
 /* ---------- início ---------- */
-function posEntrada(){atualizarAvisoFila();atualizarAlertas();enviarFila();if(!document.querySelector('[data-sec="2"]').hidden)painel()}
+const visivel=n=>!document.querySelector(`[data-sec="${n}"]`).hidden;
+function recarregarVisivel(){ultimosDados=null;if(visivel('5'))inicio();if(visivel('2'))painel();if(visivel('4'))contas()}
+function posEntrada(){atualizarAvisoFila();atualizarAlertas();enviarFila();if(visivel('5'))inicio();if(visivel('2'))painel()}
 async function iniciarApp(){
   atualizarAvisoFila();
   if(!MODO_TESTE&&!tokenApp()){await prepararTrava();return}
@@ -800,22 +873,20 @@ async function iniciarApp(){
 let tt;function toast(msg){document.querySelector('.toast')?.remove();const t=document.createElement('div');t.className='toast';t.setAttribute('role','status');t.textContent=msg;document.body.appendChild(t);clearTimeout(tt);tt=setTimeout(()=>t.remove(),3200)}
 
 /* ---------- abas ---------- */
-document.querySelectorAll('.tabbar button').forEach(b=>b.onclick=()=>{
-  const n=b.dataset.aba;document.querySelectorAll('.tabbar button').forEach(x=>x.setAttribute('aria-selected',x===b));window.scrollTo(0,0);
-  document.querySelectorAll('section').forEach(s=>s.hidden=s.dataset.sec!==n);if(n==='2')painel();if(n==='4')contas();if(n==='3')abrirInvest();else if(invSenha)travarInv();
-});
+/* (abas: veja irPara, mais abaixo) */
 
 /* ---------- formulário ---------- */
 const hoje=new Date(),mesAtual=hoje.getFullYear()+'-'+String(hoje.getMonth()+1).padStart(2,'0');
 $('hoje').textContent=hoje.toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'});
-$('data').value=mesAtual+'-'+String(hoje.getDate()).padStart(2,'0');
+$('data').value=$('enData').value=mesAtual+'-'+String(hoje.getDate()).padStart(2,'0');
 $('mesPdf').value=$('mesPainel').value=mesAtual;
 $('cat').innerHTML=opcoesCat('Mercado');
 $('cartao').innerHTML=$('cartaoPdf').innerHTML=CARTOES.map(c=>`<option>${c}</option>`).join('');
 $('formas').innerHTML=FORMAS.map((f,i)=>`<label><input type="radio" name="forma" value="${f}"${i===1?' checked':''}><span>${f}</span></label>`).join('');
 // a categoria acompanha a descrição até você escolher uma na mão
-let catManual=false;$('cat').addEventListener('change',()=>{catManual=true});
-$('desc').addEventListener('change',()=>{if(catManual)return;const h=histCat[semAcento($('desc').value)];$('cat').value=h&&CATS.includes(h)?h:categoria($('desc').value)});
+let catManual=false;$('cat').addEventListener('change',()=>{catManual=true;descOpcional()});
+function descOpcional(){const f=FIXAS.includes($('cat').value);$('descOpc').hidden=!f;$('desc').placeholder=f?'Se deixar vazio, fica '+$('cat').value:'Ex.: Assaí Barra'}
+$('desc').addEventListener('change',()=>{if(catManual)return;const h=histCat[semAcento($('desc').value)];$('cat').value=h&&CATS.includes(h)?h:categoria($('desc').value);descOpcional()});
 const forma=()=>document.querySelector('[name=forma]:checked').value;
 const tipo=()=>document.querySelector('[name=tipo]:checked').value;
 function ver(){
@@ -845,7 +916,7 @@ function atualizarAjustes(){
   const nf=contarFila();
   $('ajConexao').textContent=(nf?`${nf} ${nf===1?'lançamento esperando':'lançamentos esperando'} internet. `:'')+(MODO_TESTE?'Modo de teste: os dados ficam só neste aparelho.':estadoConexao==='ok'?'Conectada. Tudo o que você salva vai para a sua planilha do Google.':estadoConexao==='erro'?'Sem conexão com a planilha agora. O que você lançar fica guardado no aparelho.':'Verificando conexão…');
   $('limpar').hidden=!MODO_TESTE;
-  $('ajCatsInfo').textContent=`${FIXAS.length} contas fixas e ${VARIAVEIS.length} variáveis`;
+  {const ne=CFG.categorias.filter(c=>c.tipo==='Entrada').length;$('ajCatsInfo').textContent=`${FIXAS.length} contas fixas, ${VARIAVEIS.length} variáveis${ne?` e ${ne} ${ne===1?'entrada':'entradas'}`:''}`}
   $('ajCartoesInfo').textContent=`${CARTOES.length} ${CARTOES.length===1?'cartão':'cartões'}: ${CARTOES.join(', ')}`;
   atualizarInstalar();
 }
@@ -869,22 +940,23 @@ $('btnInstalar').onclick=async()=>{
 /* ---------- categorias e cartões editáveis (guardados na planilha) ---------- */
 const IC_LAPIS='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m13.5 6.5 4 4"/></svg>';
 const IC_LIXO='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>';
-const PADRAO_CFG={categorias:[...FIXAS.map(n=>({nome:n,tipo:'Fixa',venc:''})),...VARIAVEIS.map(n=>({nome:n,tipo:'Variável',venc:''}))],cartoes:CARTOES.map(n=>({nome:n,fech:'',venc:''}))};
+const PADRAO_CFG={categorias:[...FIXAS.map(n=>({nome:n,tipo:'Fixa',venc:''})),...VARIAVEIS.map(n=>({nome:n,tipo:'Variável',venc:''})),{nome:'Salário',tipo:'Entrada',venc:'',valor:''},{nome:'Outras entradas',tipo:'Entrada',venc:'',valor:''}],cartoes:CARTOES.map(n=>({nome:n,fech:'',venc:''}))};
 let CFG=null;try{CFG=JSON.parse(localStorage.getItem('gg_config'))}catch(e){}
 if(!CFG||!Array.isArray(CFG.categorias)||!Array.isArray(CFG.cartoes))CFG=JSON.parse(JSON.stringify(PADRAO_CFG));
 const copiaCfg=()=>JSON.parse(JSON.stringify(CFG));
 const semAcento=t=>String(t||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().trim();
 function aplicarConfig(){
-  FIXAS=CFG.categorias.filter(c=>c.tipo==='Fixa').map(c=>c.nome);VARIAVEIS=CFG.categorias.filter(c=>c.tipo!=='Fixa').map(c=>c.nome);CATS=[...FIXAS,...VARIAVEIS];
+  FIXAS=CFG.categorias.filter(c=>c.tipo==='Fixa').map(c=>c.nome);VARIAVEIS=CFG.categorias.filter(c=>c.tipo==='Variável').map(c=>c.nome);CATS=[...FIXAS,...VARIAVEIS];
   CARTOES=CFG.cartoes.map(c=>c.nome);
   const sc=$('cat').value;$('cat').innerHTML=opcoesCat(CATS.includes(sc)?sc:(CATS.includes('Mercado')?'Mercado':CATS[0]));
   for(const id of ['cartao','cartaoPdf']){const v=$(id).value;$(id).innerHTML=CARTOES.map(c=>`<option>${esc(c)}</option>`).join('');if(CARTOES.includes(v))$(id).value=v}
+  if($('enCat')){const ve=$('enCat').value;$('enCat').innerHTML=opcoesEntrada(ve)}
   try{localStorage.setItem('gg_config',JSON.stringify(CFG))}catch(e){}
-  if(typeof ver==='function')ver();
+  if(typeof ver==='function')ver();if(typeof descOpcional==='function')descOpcional();
 }
 function lerConfigServidor(d){
   if(!d||!d.config)return;
-  const cats=(d.categorias||[]).filter(r=>r&&r[0]!==''&&r[0]!=null).map(r=>({nome:String(r[0]).trim(),tipo:semAcento(r[1]).startsWith('f')?'Fixa':'Variável',venc:+r[2]||''}));
+  const cats=(d.categorias||[]).filter(r=>r&&r[0]!==''&&r[0]!=null).map(r=>({nome:String(r[0]).trim(),tipo:semAcento(r[1]).startsWith('f')?'Fixa':semAcento(r[1]).startsWith('e')?'Entrada':'Variável',venc:+r[2]||'',valor:+r[3]||''}));
   const cars=(d.cartoes||[]).filter(r=>r&&(Array.isArray(r)?r[0]:r)).map(r=>Array.isArray(r)?{nome:String(r[0]).trim(),fech:+r[1]||'',venc:+r[2]||''}:{nome:String(r).trim(),fech:'',venc:''});
   if(cats.length)CFG.categorias=cats;if(cars.length)CFG.cartoes=cars;aplicarConfig();
 }
@@ -926,17 +998,17 @@ function confirmar(b,txt,acao){if(!b.classList.contains('conf')){b.dataset.ic=b.
 const nomeRepetido=(lista,nome,ignorar)=>lista.some((c,i)=>i!==ignorar&&semAcento(c.nome)===semAcento(nome));
 
 function renderCats(editando=-1){
-  const grupos=[['Contas fixas',true],['Contas variáveis',false]];
-  $('listaCats').innerHTML=grupos.map(([t,fixa])=>`<h4>${t}</h4>`+CFG.categorias.map((c,i)=>[c,i]).filter(([c])=>(c.tipo==='Fixa')===fixa).map(([c,i])=>editando===i
-    ?`<div class="itemcfg ed"><label>Nome<input id="edCatNome" value="${esc(c.nome)}"></label><div class="chips"><label><input type="radio" name="edCatTipo" value="Fixa"${c.tipo==='Fixa'?' checked':''}><span>Conta fixa</span></label><label><input type="radio" name="edCatTipo" value="Variável"${c.tipo!=='Fixa'?' checked':''}><span>Conta variável</span></label></div>
+  const grupos=[['Contas fixas','Fixa'],['Contas variáveis','Variável'],['Entradas','Entrada']];
+  $('listaCats').innerHTML=grupos.map(([t,tp])=>{const l=CFG.categorias.map((c,i)=>[c,i]).filter(([c])=>c.tipo===tp);return l.length?`<h4>${t}</h4>`+l.map(([c,i])=>editando===i
+    ?`<div class="itemcfg ed"><label>Nome<input id="edCatNome" value="${esc(c.nome)}"></label><div class="chips"><label><input type="radio" name="edCatTipo" value="Fixa"${c.tipo==='Fixa'?' checked':''}><span>Fixa</span></label><label><input type="radio" name="edCatTipo" value="Variável"${c.tipo==='Variável'?' checked':''}><span>Variável</span></label><label><input type="radio" name="edCatTipo" value="Entrada"${c.tipo==='Entrada'?' checked':''}><span>Entrada</span></label></div>
       <div class="dois"><button class="btn peq" type="button" data-salvarcat="${i}">Salvar</button><button class="btn sec peq" type="button" data-cancelar>Cancelar</button></div></div>`
-    :`<div class="itemcfg"><span><span class="n">${esc(c.nome)}</span>${c.tipo==='Fixa'?`<span class="dica" style="display:block">${c.venc?`Vence dia ${c.venc}`:'Sem dia de vencimento'}</span>`:''}</span><span class="bts"><button type="button" class="ed" data-editcat="${i}" aria-label="Editar ${esc(c.nome)}">${IC_LAPIS}</button>${c.nome==='Outros'?'':`<button type="button" class="x" data-delcat="${i}" aria-label="Excluir ${esc(c.nome)}">${IC_LIXO}</button>`}</span></div>`).join('')).join('');
+    :`<div class="itemcfg"><span><span class="n">${esc(c.nome)}</span>${c.tipo!=='Variável'?`<span class="dica" style="display:block">${c.venc?`Vence dia ${c.venc}`:'Sem dia de vencimento'}</span>`:''}</span><span class="bts"><button type="button" class="ed" data-editcat="${i}" aria-label="Editar ${esc(c.nome)}">${IC_LAPIS}</button>${c.nome==='Outros'?'':`<button type="button" class="x" data-delcat="${i}" aria-label="Excluir ${esc(c.nome)}">${IC_LIXO}</button>`}</span></div>`).join(''):''}).join('');
   const L=$('listaCats');
   L.querySelectorAll('[data-editcat]').forEach(b=>b.onclick=()=>{renderCats(+b.dataset.editcat);setTimeout(()=>$('edCatNome')?.focus(),20)});
   L.querySelectorAll('[data-cancelar]').forEach(b=>b.onclick=()=>renderCats());
   L.querySelectorAll('[data-salvarcat]').forEach(b=>b.onclick=()=>{const i=+b.dataset.salvarcat,nome=$('edCatNome').value.trim(),tipo=document.querySelector('[name=edCatTipo]:checked').value;const venc=CFG.categorias[i].venc||'';
     if(!nome){toast('Digite o nome da categoria.');return}if(nomeRepetido(CFG.categorias,nome,i)){toast('Já existe uma categoria com esse nome.');return}
-    const novo=copiaCfg(),antigo=novo.categorias[i].nome;novo.categorias[i]={nome,tipo,venc:tipo==='Fixa'?venc:''};
+    const novo=copiaCfg(),antigo=novo.categorias[i].nome;novo.categorias[i]={...novo.categorias[i],nome,tipo,venc:tipo!=='Variável'?venc:'',valor:tipo!=='Variável'?(novo.categorias[i].valor||''):''};
     mudarCfg(novo,antigo!==nome?{categorias:[[antigo,nome]]}:{},antigo!==nome?`Categoria renomeada para ${nome}.`:'Categoria salva.',()=>renderCats())});
   L.querySelectorAll('[data-delcat]').forEach(b=>b.onclick=()=>confirmar(b,'Excluir?',()=>{const i=+b.dataset.delcat,novo=copiaCfg(),antigo=novo.categorias[i].nome;novo.categorias.splice(i,1);
     if(!novo.categorias.some(c=>c.nome==='Outros'))novo.categorias.push({nome:'Outros',tipo:'Variável'});
@@ -944,7 +1016,7 @@ function renderCats(editando=-1){
 }
 $('addCat').onclick=()=>{const nome=$('novaCat').value.trim(),tipo=document.querySelector('[name=novaCatTipo]:checked').value;const venc='';
   if(!nome){toast('Digite o nome da categoria.');$('novaCat').focus();return}if(nomeRepetido(CFG.categorias,nome,-1)){toast('Já existe uma categoria com esse nome.');return}
-  const novo=copiaCfg();novo.categorias.push({nome,tipo,venc:tipo==='Fixa'?venc:''});mudarCfg(novo,{},`${nome} adicionada em contas ${tipo==='Fixa'?'fixas':'variáveis'}.`,()=>{$('novaCat').value='';renderCats()})};
+  const novo=copiaCfg();novo.categorias.push({nome,tipo,venc:tipo==='Fixa'?venc:''});mudarCfg(novo,{},`${nome} adicionada em ${tipo==='Fixa'?'contas fixas':tipo==='Entrada'?'entradas':'contas variáveis'}.`,()=>{$('novaCat').value='';renderCats()})};
 $('novaCat').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();$('addCat').click()}});
 
 const textoDias=c=>c.fech&&c.venc?`Fecha dia ${c.fech} e vence dia ${c.venc}`:'Sem dia de fechamento: compras à mão entram na fatura do mês seguinte';
@@ -987,7 +1059,7 @@ async function editarLanc(chave,novo){
 }
 let edItem=null;
 function abrirEditar(it){edItem=it;const cred=!!it.chave.cartao;
-  $('edDesc').value=it.desc;$('edCat').innerHTML=opcoesCat(it.cat);$('edVista').hidden=cred;$('edCredInfo').hidden=!cred;
+  $('edDesc').value=it.desc;$('edCat').innerHTML=it.entrada?opcoesEntrada(it.cat):opcoesCat(it.cat);$('edForma').innerHTML=it.entrada?'<option>Entrada</option>':'<option>Dinheiro</option><option>Pix</option><option>Débito</option>';$('edVista').hidden=cred;$('edCredInfo').hidden=!cred;
   if(cred)$('edCredInfo').textContent=`Compra no ${it.chave.cartao}${it.n>1?`, em ${it.n} parcelas`:''}. Valor e parcelas vêm da fatura; para mudar o valor, exclua e lance de novo.`;
   else{$('edData').value=it.data;$('edValor').value=String(it.valorTotal??it.valor).replace('.',',');$('edForma').value=it.onde}
   $('edStatus').textContent='';$('editar').hidden=false;document.body.style.overflow='hidden';setTimeout(()=>$('edDesc').focus(),30)}
@@ -997,7 +1069,7 @@ $('editar').addEventListener('click',e=>{if(e.target===$('editar'))fecharEditar(
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('editar').hidden)fecharEditar()});
 $('edSalvar').onclick=async()=>{const it=edItem,st=$('edStatus'),b=$('edSalvar');if(!it)return;
   const novo={descricao:$('edDesc').value.trim(),categoria:$('edCat').value};
-  if(!novo.descricao){st.textContent='Digite a descrição.';return}
+  if(!novo.descricao){if(FIXAS.includes(novo.categoria)||it.entrada)novo.descricao=novo.categoria;else{st.textContent='Digite a descrição.';return}}
   if(!it.chave.cartao){novo.data=$('edData').value;novo.valor=valorDigitado($('edValor').value);novo.forma=$('edForma').value;
     if(!novo.data||!novo.valor){st.textContent='Preencha a data e o valor.';return}}
   b.disabled=true;b.textContent='Salvando…';
@@ -1013,8 +1085,8 @@ const diasAte=data=>{const h=new Date();h.setHours(0,0,0,0);const[a,m,d]=data.sp
 function vencimentosDoMes(d,mes){
   const[a,m]=mes.split('-').map(Number),ult=new Date(a,m,0).getDate(),M=doMesTudo(d,mes),itens=[];
   const pagos=MODO_TESTE?pagosLocal():PAGOS;
-  CFG.categorias.filter(c=>c.tipo==='Fixa'&&c.venc).forEach(c=>{const l=M.todos.filter(i=>i.cat===c.nome),chave=`${mes}|conta|${c.nome}`;
-    itens.push({tipo:'conta',nome:c.nome,data:`${mes}-${pad2(Math.min(+c.venc,ult))}`,valor:l.reduce((x,i)=>x+i.valor,0),lancado:l.length>0,pago:l.length>0||!!pagos[chave],chave})});
+  CFG.categorias.filter(c=>c.tipo==='Fixa'&&c.venc).forEach(c=>{const l=M.todos.filter(i=>i.cat===c.nome&&!i.prevista),chave=`${mes}|conta|${c.nome}`,lancado=l.length>0;
+    itens.push({tipo:'conta',nome:c.nome,data:`${mes}-${pad2(Math.min(+c.venc,ult))}`,valor:lancado?l.reduce((x,i)=>x+i.valor,0):(+c.valor||0),previsto:!lancado&&+c.valor>0,lancado,pago:lancado||!!pagos[chave],marcada:!lancado&&!!pagos[chave],chave})});
   CFG.cartoes.filter(c=>c.venc).forEach(c=>{const chave=`${mes}|cartao|${c.nome}`;
     const valor=d.parc.filter(r=>r[2]===c.nome&&String(r[5]).slice(0,7)===mes).reduce((x,r)=>x+(+r[4]||0),0);
     itens.push({tipo:'cartao',nome:c.nome,data:`${mes}-${pad2(Math.min(+c.venc,ult))}`,valor,pago:!!pagos[chave],chave})});
@@ -1045,51 +1117,104 @@ async function contas(){
   const mes=$('mesContas').value,itens=vencimentosDoMes(d,mes);
   const semVenc=[...CFG.categorias.filter(c=>c.tipo==='Fixa'&&!c.venc).map(c=>c.nome),...CFG.cartoes.filter(c=>!c.venc).map(c=>c.nome)];
   renderFixas();
-  if(!itens.length){s.innerHTML=`<div class="card vazio"><p style="margin:0 0 4px;color:var(--fg);font-weight:600">Nenhum vencimento cadastrado</p><p class="dica">Coloque o dia de vencimento das contas fixas logo abaixo. Os cartões ganham as datas quando você importa a fatura.</p></div>`;return}
-  const aPagar=itens.filter(i=>!i.pago),totalPend=aPagar.reduce((x,i)=>x+i.valor,0),totalPago=itens.filter(i=>i.pago).reduce((x,i)=>x+i.valor,0);
+  const RM=resumoMes(d,mes),E=RM.E,ents=[...E.previstas,...E.recebidas.map(i=>({...i,nome:i.desc,recebida:true}))].sort((a,b)=>a.data.localeCompare(b.data));
   const sem=['dom','seg','ter','qua','qui','sex','sáb'];
-  s.innerHTML=`<div class="card resumo"><div class="total"><div><div class="sub">Ainda a pagar em ${nomeMes(mes)}</div><div class="grande">${R(totalPend)}</div></div>
-      <div class="sub">${aPagar.length} de ${itens.length} pendentes · já pago ${R(totalPago)}</div></div></div>
+  const blocoEnt=ents.length?`<div class="card"><h2>Entradas de ${nomeMes(mes)}</h2>${ents.map((it,ix)=>{const[a,m,dd]=it.data.split('-').map(Number);
+      return`<div class="conta${it.recebida?' paga':''}"><div class="dia"><b>${pad2(dd)}</b><span>${sem[new Date(a,m-1,dd).getDay()]}</span></div>
+        <div class="meio"><span class="n">${esc(it.nome)}</span><span class="i">${it.recebida?'<span class="pill desce">Recebida</span>':'A receber'}</span></div>
+        <div class="fim"><span class="num">${R(it.valor)}${it.prevista?'<span class="prev">previsto</span>':''}</span>${it.recebida?'':`<button type="button" class="marcar forte" data-receber="${ix}">Receber</button>`}</div></div>`}).join('')}</div>`:'';
+  if(!itens.length){s.innerHTML=`<div class="card vazio"><p style="margin:0 0 4px;color:var(--fg);font-weight:600">Nenhum vencimento cadastrado</p><p class="dica">Coloque o dia de vencimento das contas fixas logo abaixo. Os cartões ganham as datas quando você importa a fatura.</p></div>${blocoEnt}`;
+    s.querySelectorAll('[data-receber]').forEach(b=>b.onclick=()=>abrirPagar(ents[+b.dataset.receber]));return}
+  const aPagar=itens.filter(i=>!i.pago);
+  s.innerHTML=`<div class="card resumo"><div class="total"><div><div class="sub">Falta pagar em ${nomeMes(mes)}</div><div class="grande">${R(RM.falta)}</div></div>
+      <div class="sub">${aPagar.length} de ${itens.length} contas pendentes · já pago ${R(RM.jaPago)}</div></div></div>
     <div class="card"><h2>Vencimentos de ${nomeMes(mes)}</h2>${itens.map((it,ix)=>{const[cl,txt]=situacao(it),[a,m,dd]=it.data.split('-').map(Number),wd=sem[new Date(a,m-1,dd).getDay()];
       return`<div class="conta${it.pago?' paga':''}"><div class="dia"><b>${pad2(dd)}</b><span>${wd}</span></div>
         <div class="meio"><span class="n">${esc(it.nome)}</span><span class="i">${it.tipo==='cartao'?'Fatura do cartão':'Conta fixa'} · <span class="pill ${cl}">${txt}</span></span></div>
-        <div class="fim"><span class="num">${it.valor?R(it.valor):'<span class="dica">sem valor</span>'}</span>${it.lancado?'':`<button type="button" class="marcar" data-pg="${ix}">${it.pago?'Desfazer':'Marcar paga'}</button>`}</div></div>`}).join('')}</div>
-    ${semVenc.length?`<p class="dica">Sem dia de vencimento: ${esc(semVenc.join(', '))}. Coloque o dia logo abaixo para entrarem aqui e nos lembretes.</p>`:''}`;
+        <div class="fim"><span class="num">${it.valor?R(it.valor):'<span class="dica">sem valor</span>'}${it.previsto?'<span class="prev">previsto</span>':''}</span>${it.lancado?'':it.tipo==='conta'&&!it.marcada?`<button type="button" class="marcar forte" data-pagar="${ix}">Pagar</button>`:`<button type="button" class="marcar" data-pg="${ix}">${it.pago?'Desfazer':'Marcar paga'}</button>`}</div></div>`}).join('')}</div>
+    ${semVenc.length?`<p class="dica">Sem dia de vencimento: ${esc(semVenc.join(', '))}. Coloque o dia logo abaixo para entrarem aqui e nos lembretes.</p>`:''}${blocoEnt}`;
+  s.querySelectorAll('[data-receber]').forEach(b=>b.onclick=()=>abrirPagar(ents[+b.dataset.receber]));
+  s.querySelectorAll('[data-pagar]').forEach(b=>b.onclick=()=>abrirPagar(itens[+b.dataset.pagar]));
   s.querySelectorAll('[data-pg]').forEach(b=>b.onclick=async()=>{const it=itens[+b.dataset.pg];b.disabled=true;b.textContent='Salvando…';
-    try{await marcarPago(it.chave,!it.pago);toast(it.pago?'Marcada como pendente.':`${it.nome} marcada como paga.`);contas()}catch(e){toast(e.message);b.disabled=false;b.textContent=it.pago?'Desfazer':'Marcar paga'}});
+    try{await marcarPago(it.chave,!it.pago);toast(it.pago?'Marcada como pendente.':`${it.nome} marcada como paga.`);recarregarVisivel()}catch(e){toast(e.message);b.disabled=false;b.textContent=it.pago?'Desfazer':'Marcar paga'}});
   atualizarAgendaInfo();
 }
 // contas fixas e vencimentos (só contas fixas)
-let rascunhoVenc={}; // dias digitados e ainda não salvos (por nome da conta)
-function renderFixas(){
-  const fixas=CFG.categorias.map((c,i)=>[c,i]).filter(([c])=>c.tipo==='Fixa');
-  $('listaFixas').innerHTML=fixas.length?fixas.map(([c,i])=>{const v=c.nome in rascunhoVenc?rascunhoVenc[c.nome]:(c.venc||'');
-    return`<div class="itemcfg"><span class="n">${esc(c.nome)}</span><span class="vencbox"><label class="diac">Dia<input inputmode="numeric" maxlength="2" value="${esc(v)}" placeholder="–" data-vencfix="${esc(c.nome)}" aria-label="Dia de vencimento de ${esc(c.nome)}"${c.nome in rascunhoVenc?' class="mudou"':''}></label><span class="bts"><button type="button" class="x" data-delfix="${i}" aria-label="Excluir ${esc(c.nome)}">${IC_LIXO}</button></span></span></div>`}).join('')
-    :'<p class="dica">Nenhuma conta fixa ainda. Cadastre a primeira abaixo.</p>';
-  const L=$('listaFixas');
-  L.querySelectorAll('[data-vencfix]').forEach(inp=>{inp.oninput=()=>{const nome=inp.dataset.vencfix,orig=String(CFG.categorias.find(c=>c.nome===nome)?.venc||'');
-      inp.value=inp.value.replace(/\D/g,'').slice(0,2);if(inp.value===orig)delete rascunhoVenc[nome];else rascunhoVenc[nome]=inp.value;inp.classList.toggle('mudou',nome in rascunhoVenc);botaoVencimentos()};
+let rascunhoVenc={}; // { conta: {venc, valor} } digitados e ainda não salvos
+const valorTexto=v=>v===''||v==null||!+v?'':String(Math.round(+v*100)/100).replace('.',',');
+function renderFixas(){renderLista('listaFixas','Fixa');renderLista('listaEntradas','Entrada');botaoVencimentos()}
+function renderLista(alvo,tipo){
+  const fixas=CFG.categorias.map((c,i)=>[c,i]).filter(([c])=>c.tipo===tipo),ent=tipo==='Entrada';
+  const atual=(c,campo)=>{const r=rascunhoVenc[c.nome];return r&&campo in r?r[campo]:campo==='venc'?String(c.venc||''):valorTexto(c.valor)};
+  const mud=(c,campo)=>rascunhoVenc[c.nome]&&campo in rascunhoVenc[c.nome]?' class="mudou"':'';
+  $(alvo).innerHTML=fixas.length?fixas.map(([c,i])=>`<div class="itemcfg fixa"><span class="n">${esc(c.nome)}</span><span class="vencbox">
+      <label class="diac">Dia<input inputmode="numeric" maxlength="2" value="${esc(atual(c,'venc'))}" placeholder="–" data-campo="venc" data-nome="${esc(c.nome)}" aria-label="${ent?'Dia em que cai':'Dia de vencimento de'} ${esc(c.nome)}"${mud(c,'venc')}></label>
+      <label class="diac valor">R$<input inputmode="decimal" value="${esc(atual(c,'valor'))}" placeholder="0,00" data-campo="valor" data-nome="${esc(c.nome)}" aria-label="Valor previsto de ${esc(c.nome)}"${mud(c,'valor')}></label>
+      <span class="bts"><button type="button" class="x" data-delfix="${i}" aria-label="Excluir ${esc(c.nome)}">${IC_LIXO}</button></span></span></div>`).join('')
+    :`<p class="dica">${ent?'Nenhuma entrada fixa ainda. Cadastre seu salário abaixo.':'Nenhuma conta fixa ainda. Cadastre a primeira abaixo.'}</p>`;
+  const L=$(alvo);
+  L.querySelectorAll('[data-campo]').forEach(inp=>{inp.oninput=()=>{const nome=inp.dataset.nome,campo=inp.dataset.campo,c=CFG.categorias.find(x=>x.nome===nome);
+      inp.value=campo==='venc'?inp.value.replace(/\D/g,'').slice(0,2):inp.value.replace(/[^\d,.]/g,'').slice(0,12);
+      const orig=campo==='venc'?String(c?.venc||''):valorTexto(c?.valor);
+      const r=rascunhoVenc[nome]||{};if(inp.value===orig)delete r[campo];else r[campo]=inp.value;
+      if(Object.keys(r).length)rascunhoVenc[nome]=r;else delete rascunhoVenc[nome];inp.classList.toggle('mudou',campo in r);botaoVencimentos()};
     inp.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();$('salvarVenc').click()}}});
   L.querySelectorAll('[data-delfix]').forEach(b=>b.onclick=()=>confirmar(b,'Excluir?',()=>{const i=+b.dataset.delfix,novo=copiaCfg(),antigo=novo.categorias[i].nome;novo.categorias.splice(i,1);delete rascunhoVenc[antigo];
-    if(!novo.categorias.some(c=>c.nome==='Outros'))novo.categorias.push({nome:'Outros',tipo:'Variável',venc:''});
-    mudarCfg(novo,{categorias:[[antigo,'Outros']]},`${antigo} excluída. Os lançamentos dela foram para Outros.`,()=>contas())}));
-  botaoVencimentos();
+    if(ent){if(!novo.categorias.some(c=>c.nome==='Outras entradas'))novo.categorias.push({nome:'Outras entradas',tipo:'Entrada',venc:'',valor:''})}
+    else if(!novo.categorias.some(c=>c.nome==='Outros'))novo.categorias.push({nome:'Outros',tipo:'Variável',venc:''});
+    mudarCfg(novo,{categorias:[[antigo,ent?'Outras entradas':'Outros']]},`${antigo} excluída.`,()=>contas())}));
 }
-function botaoVencimentos(){const n=Object.keys(rascunhoVenc).length,b=$('salvarVenc');b.hidden=!n;b.textContent=n===1?'Salvar 1 vencimento':`Salvar ${n} vencimentos`}
+function botaoVencimentos(){const nomes=Object.keys(rascunhoVenc),tipoDe=n=>CFG.categorias.find(c=>c.nome===n)?.tipo;
+  [['salvarVenc','Fixa','conta','contas'],['salvarEnt','Entrada','entrada','entradas']].forEach(([id,tp,um,varios])=>{const n=nomes.filter(x=>tipoDe(x)===tp).length,b=$(id);
+    b.hidden=!n;if(!b.disabled)b.textContent=n===1?`Salvar alteração de 1 ${um}`:`Salvar alterações de ${n} ${varios}`})}
+$('salvarEnt').onclick=()=>$('salvarVenc').onclick();
 $('salvarVenc').onclick=async()=>{const nomes=Object.keys(rascunhoVenc);if(!nomes.length||cfgOcupado)return;
   const novo=copiaCfg();
-  for(const nome of nomes){const v=diaValido(rascunhoVenc[nome]);if(Number.isNaN(v)){toast(`${nome}: o dia precisa ser de 1 a 31.`);return}const c=novo.categorias.find(x=>x.nome===nome);if(c)c.venc=v}
-  const b=$('salvarVenc');b.disabled=true;b.textContent='Salvando…';cfgOcupado=true;
-  try{await salvarConfig(novo,{});rascunhoVenc={};toast(nomes.length===1?'Vencimento salvo.':`${nomes.length} vencimentos salvos.`)}
+  for(const nome of nomes){const r=rascunhoVenc[nome],c=novo.categorias.find(x=>x.nome===nome);if(!c)continue;
+    if('venc' in r){const v=diaValido(r.venc);if(Number.isNaN(v)){toast(`${nome}: o dia precisa ser de 1 a 31.`);return}c.venc=v}
+    if('valor' in r){const v=r.valor.trim()===''?'':valorDigitado(r.valor);c.valor=v||''}}
+  const b=$('salvarVenc'),b2=$('salvarEnt');b.disabled=b2.disabled=true;b.textContent=b2.textContent='Salvando…';cfgOcupado=true;
+  try{await salvarConfig(novo,{});rascunhoVenc={};toast(nomes.length===1?'Alteração salva.':`${nomes.length} alterações salvas.`)}
   catch(e){toast(e.message+' O que você digitou continua na tela; tente salvar de novo.')}
-  finally{cfgOcupado=false;b.disabled=false;contas()}};
-$('nfAdd').onclick=()=>{const nome=$('nfNome').value.trim(),dia=diaValido($('nfDia').value.trim());
+  finally{cfgOcupado=false;b.disabled=b2.disabled=false;contas()}};
+// pagar uma conta fixa: vira um lançamento do mês, com o valor ajustável
+let pgItem=null;const hojeISO=()=>{const h=new Date();return h.getFullYear()+'-'+pad2(h.getMonth()+1)+'-'+pad2(h.getDate())};
+function abrirPagar(it){pgItem=it;const prev=+(CFG.categorias.find(c=>c.nome===it.nome)?.valor||0),ent=it.tipo==='entrada';
+  $('pgTitulo').textContent=(ent?'Receber ':'Pagar ')+it.nome;$('pgRotValor').textContent=ent?'Valor recebido':'Valor pago';$('pgBoxForma').hidden=ent;
+  $('pgConfirmar').textContent=ent?'Confirmar recebimento':'Confirmar pagamento';$('pgValor').value=valorTexto(it.valor||prev);
+  $('pgData').value=it.data.slice(0,7)===mesAtual||it.data<hojeISO()?hojeISO():it.data;
+  let u=null;try{u=JSON.parse(pegar('gg_ultimo'))}catch(e){}$('pgForma').value=u&&['Pix','Débito','Dinheiro'].includes(u.forma)?u.forma:'Pix';
+  $('pgFixo').checked=false;$('pgBoxFixo').hidden=true;$('pgInfo').textContent=prev?`Valor previsto: ${R(prev)}. Se este mês veio diferente, ajuste aqui.`:`${ent?'Esta entrada':'Esta conta'} ainda não tem valor previsto. Marque abaixo para usar este valor nos próximos meses.`;
+  if(!prev)$('pgBoxFixo').hidden=false;$('pgStatus').textContent='';$('pagar').hidden=false;document.body.style.overflow='hidden';setTimeout(()=>$('pgValor').focus(),30)}
+function fecharPagar(){$('pagar').hidden=true;document.body.style.overflow=''}
+$('pgFechar').onclick=fecharPagar;$('pgCancelar').onclick=fecharPagar;
+$('pagar').addEventListener('click',e=>{if(e.target===$('pagar'))fecharPagar()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('pagar').hidden)fecharPagar()});
+$('pgValor').addEventListener('input',()=>{const v=valorDigitado($('pgValor').value),prev=+(CFG.categorias.find(c=>c.nome===pgItem?.nome)?.valor||0);$('pgBoxFixo').hidden=!v||Math.abs(v-prev)<0.005});
+$('pgConfirmar').onclick=async()=>{const it=pgItem,st=$('pgStatus'),b=$('pgConfirmar');if(!it)return;
+  const ent=it.tipo==='entrada',v=valorDigitado($('pgValor').value),data=$('pgData').value,forma=ent?'Entrada':$('pgForma').value;
+  if(!v){st.textContent=ent?'Digite o valor recebido.':'Digite o valor pago.';return}if(!data){st.textContent='Escolha a data.';return}
+  b.disabled=true;b.textContent='Salvando…';
+  try{const res=await enviar([{data,descricao:it.nome,categoria:it.nome,valor:v,forma}]);ultimosDados=null;
+    let extra='';if($('pgFixo').checked&&!$('pgBoxFixo').hidden){const novo=copiaCfg(),c=novo.categorias.find(x=>x.nome===it.nome);if(c){c.valor=v;try{await salvarConfig(novo,{});extra=' Valor previsto atualizado para os próximos meses.'}catch(e){extra=' Não consegui atualizar o valor previsto agora.'}}}
+    fecharPagar();toast((res.offline?`${it.nome}: guardado no aparelho, vai para a planilha quando a internet voltar.`:`${it.nome} ${ent?'recebida':'paga'}: ${R(v)}.`)+extra);recarregarVisivel()}
+  catch(e){st.textContent=e.message}finally{b.disabled=false;b.textContent=ent?'Confirmar recebimento':'Confirmar pagamento'}};
+$('nfAdd').onclick=()=>{const nome=$('nfNome').value.trim(),dia=diaValido($('nfDia').value.trim()),valor=$('nfValor').value.trim()?valorDigitado($('nfValor').value):'';
   if(!nome){toast('Digite o nome da conta.');$('nfNome').focus();return}
   if(Number.isNaN(dia)){toast('O dia de vencimento precisa ser de 1 a 31.');return}
   if(nomeRepetido(CFG.categorias,nome,-1)){toast('Já existe uma categoria com esse nome.');return}
-  const novo=copiaCfg();novo.categorias.push({nome,tipo:'Fixa',venc:dia});
-  mudarCfg(novo,{},`${nome} adicionada${dia?`, vence dia ${dia}`:''}.`,()=>{$('nfNome').value=$('nfDia').value='';contas()})};
-['nfNome','nfDia'].forEach(id=>$(id).addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();$('nfAdd').click()}}));
+  const novo=copiaCfg();novo.categorias.push({nome,tipo:'Fixa',venc:dia,valor:valor||''});
+  mudarCfg(novo,{},`${nome} adicionada${dia?`, vence dia ${dia}`:''}${valor?`, ${R(valor)} por mês`:''}.`,()=>{$('nfNome').value=$('nfDia').value=$('nfValor').value='';contas()})};
+['nfNome','nfDia','nfValor'].forEach(id=>$(id).addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();$('nfAdd').click()}}));
+$('neAdd').onclick=()=>{const nome=$('neNome').value.trim(),dia=diaValido($('neDia').value.trim()),valor=$('neValor').value.trim()?valorDigitado($('neValor').value):'';
+  if(!nome){toast('Digite o nome da entrada.');$('neNome').focus();return}
+  if(Number.isNaN(dia)){toast('O dia precisa ser de 1 a 31.');return}
+  if(nomeRepetido(CFG.categorias,nome,-1)){const c=CFG.categorias.find(x=>semAcento(x.nome)===semAcento(nome));if(!(c&&c.tipo==='Entrada')){toast('Já existe uma categoria com esse nome.');return}
+    const novo=copiaCfg(),k=novo.categorias.find(x=>x.nome===c.nome);k.venc=dia;k.valor=valor||'';
+    mudarCfg(novo,{},`${c.nome} atualizada.`,()=>{$('neNome').value=$('neDia').value=$('neValor').value='';contas()});return}
+  const novo=copiaCfg();novo.categorias.push({nome,tipo:'Entrada',venc:dia,valor:valor||''});
+  mudarCfg(novo,{},`${nome} adicionada${valor?`, ${R(valor)} por mês`:''}.`,()=>{$('neNome').value=$('neDia').value=$('neValor').value='';contas()})};
+['neNome','neDia','neValor'].forEach(id=>$(id).addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();$('neAdd').click()}}));
 
 // lembretes na Agenda do Google
 function atualizarAgendaInfo(){const ativa=!!(AGENDA&&AGENDA.n!=null);
@@ -1108,9 +1233,104 @@ function atualizarAlertas(){
   const urg=lista.some(i=>diasAte(i.data)<=2);box.className='alertas'+(urg?' urgente':'');
   box.innerHTML=`<button type="button" class="corpo" id="alertaIr"><b>${lista.length===1?'Conta para pagar':`${lista.length} contas para pagar`}</b>${lista.slice(0,3).map(i=>`<span>${esc(i.nome)}: ${situacao(i)[1].toLowerCase()}${i.valor?` · ${R(i.valor)}`:''}</span>`).join('')}${lista.length>3?`<span>e mais ${lista.length-3}</span>`:''}</button><button type="button" class="fechar" id="alertaFechar" aria-label="Fechar alerta">×</button>`;
   box.hidden=false;
-  $('alertaIr').onclick=()=>document.querySelector('.tabbar [data-aba="4"]').click();
+  $('alertaIr').onclick=()=>irPara('4');
   $('alertaFechar').onclick=()=>{alertasFechados=true;box.hidden=true};
 }
+
+/* ---------- navegação ---------- */
+function irPara(sec,aba){
+  document.querySelectorAll('section').forEach(s=>s.hidden=s.dataset.sec!==sec);
+  document.querySelectorAll('.tabbar button').forEach(x=>x.setAttribute('aria-selected',x.dataset.aba===(aba||sec)));window.scrollTo(0,0);
+  if(sec==='5')inicio();if(sec==='2')painel();if(sec==='4')contas();if(sec==='3')abrirInvest();else if(invSenha)travarInv();
+}
+document.querySelectorAll('.tabbar button').forEach(b=>b.onclick=()=>irPara(b.dataset.aba));
+document.querySelectorAll('[data-ir]').forEach(b=>b.onclick=()=>irPara(b.dataset.ir,b.dataset.irAba));
+// Lançar: Gasto, Entrada ou Importar fatura
+function modoLancar(m){$('form').hidden=m!=='gasto';$('formEntrada').hidden=m!=='entrada';$('blocoFatura').hidden=m!=='fatura';
+  $('tituloLancar').textContent=m==='entrada'?'Nova entrada':m==='fatura'?'Importar fatura':'Novo gasto';
+  const r=document.querySelector(`[name=modoLanc][value=${m}]`);if(r)r.checked=true}
+$('modoLanc').onchange=e=>modoLancar(e.target.value);
+
+/* ---------- entradas (salário e outras) ---------- */
+function entradasDoMes(d,mes){
+  const dia=r=>String(r[0]).slice(0,10),recebidas=[],previstas=[];
+  d.lanc.forEach(r=>{if(r[4]==='Entrada'&&dia(r).slice(0,7)===mes)recebidas.push({data:dia(r),desc:r[1],cat:r[2],valor:+r[3]||0,entrada:true,onde:'Entrada',info:'entrada recebida',chave:{data:dia(r),descricao:r[1],cartao:''}})});
+  if(mes>=mesAtual){const pg=MODO_TESTE?pagosLocal():PAGOS,ja=new Set(recebidas.map(i=>i.cat)),[aa,mm]=mes.split('-').map(Number),ult=new Date(aa,mm,0).getDate();
+    CFG.categorias.filter(c=>c.tipo==='Entrada'&&+c.valor>0&&!ja.has(c.nome)&&!pg[`${mes}|entrada|${c.nome}`]).forEach(c=>{
+      previstas.push({tipo:'entrada',nome:c.nome,desc:c.nome,cat:c.nome,data:`${mes}-${pad2(c.venc?Math.min(+c.venc,ult):1)}`,valor:+c.valor,entrada:true,prevista:true})})}
+  const s=l=>l.reduce((x,i)=>x+i.valor,0);
+  return{recebidas,previstas,recebido:s(recebidas),aReceber:s(previstas),total:s(recebidas)+s(previstas)};
+}
+// um cálculo só para "já pago" e "falta pagar" (usado no Início, no Painel e na aba Contas)
+function resumoMes(d,mes){
+  const M=doMesTudo(d,mes),tot=l=>l.reduce((x,i)=>x+i.valor,0),pg=MODO_TESTE?pagosLocal():PAGOS,paga=c=>!!pg[`${mes}|cartao|${c}`];
+  const r2=v=>Math.round(v*100)/100,saidas=r2(tot(M.todos)),pagoCartao=[...M.novas,...M.antigas].filter(i=>paga(i.cartao)).reduce((x,i)=>x+i.valor,0);
+  const jaPago=r2(tot(M.vista)+pagoCartao),falta=Math.max(0,r2(saidas-jaPago)),E=entradasDoMes(d,mes);
+  return{M,E,saidas,jaPago,falta,entradas:r2(E.total),sobra:r2(E.total-saidas),faturaPaga:paga};
+}
+
+/* ---------- Início ---------- */
+async function inicio(){
+  const s=$('inicioBox');if(!s.innerHTML.trim())s.innerHTML='<p class="vazio">Carregando…</p>';
+  let d;try{d=await carregar()}catch(e){s.innerHTML=`<p class="card vazio">${esc(e.message)}</p>`;return}
+  ultimosDados=d;atualizarAlertas();
+  const mes=mesAtual,r=resumoMes(d,mes),temEntradas=CFG.categorias.some(c=>c.tipo==='Entrada'&&+c.valor>0)||r.E.recebidas.length;
+  // próximos 7 dias: contas e faturas a pagar + entradas a receber
+  const prox=[...vencimentosDoMes(d,mes),...vencimentosDoMes(d,somaMes(mes,1))].filter(i=>!i.pago&&diasAte(i.data)<=7&&diasAte(i.data)>=-31);
+  const receber=[...r.E.previstas,...entradasDoMes(d,somaMes(mes,1)).previstas].filter(i=>diasAte(i.data)<=7&&diasAte(i.data)>=-31);
+  const itens7=[...prox,...receber].sort((a,b)=>a.data.localeCompare(b.data));
+  // próximos 3 meses
+  const meses=[0,1,2].map(k=>{const m=somaMes(mes,k),x=k===0?r:resumoMes(d,m);return{m,saidas:x.saidas,entradas:x.entradas,sobra:x.sobra,k}});
+  const mx=Math.max(1,...meses.map(m=>Math.max(m.saidas,m.entradas)));
+  const sem=['dom','seg','ter','qua','qui','sex','sáb'];
+  s.innerHTML=`
+  <div class="card resumo">
+    <div><div class="sub">${temEntradas?`Sobra prevista em ${nomeMes(mes)}`:`Falta pagar em ${nomeMes(mes)}`}</div>
+      <div class="grande${temEntradas&&r.sobra<0?' neg':''}">${temEntradas?R(r.sobra):R(r.falta)}</div></div>
+    <div class="pagobar">
+      ${temEntradas?`<div class="linha"><span>Entradas do mês</span><span class="num">${R(r.entradas)}</span></div>
+      <div class="linha sub2"><span>recebido · a receber</span><span class="num">${R(r.E.recebido)} · ${R(r.E.aReceber)}</span></div>`:''}
+      <div class="linha"><span>Saídas do mês</span><span class="num">${R(r.saidas)}</span></div>
+      <div class="linha sub2"><span>pago · falta pagar</span><span class="num">${R(r.jaPago)} · ${R(r.falta)}</span></div>
+    </div>
+    ${temEntradas?'':`<div class="dica-box"><p class="dica">Cadastre seu salário em <b>Contas › Entradas fixas</b> para ver quanto sobra no mês.</p><button class="btn sec peq" type="button" id="irEntradas">Cadastrar entradas</button></div>`}
+  </div>
+
+  <div class="card"><div class="cab2"><h2>Próximos 7 dias</h2><button class="link" type="button" id="verContas">Ver todas as contas</button></div>
+    ${itens7.length?itens7.map((it,ix)=>{const[a,m,dd]=it.data.split('-').map(Number),n=diasAte(it.data),ent=it.tipo==='entrada';
+      const txt=ent?(n<0?`era para ${-n} ${n===-1?'dia':'dias'} atrás`:n===0?'hoje':`em ${n} ${n===1?'dia':'dias'}`):situacao(it)[1];
+      return`<div class="conta"><div class="dia"><b>${pad2(dd)}</b><span>${sem[new Date(a,m-1,dd).getDay()]}</span></div>
+        <div class="meio"><span class="n">${esc(it.nome)}</span><span class="i">${ent?'A receber':it.tipo==='cartao'?'Fatura do cartão':'Conta fixa'} · <span class="pill ${ent?'desce':situacao(it)[0]}">${txt}</span></span></div>
+        <div class="fim"><span class="num">${it.valor?R(it.valor):'<span class="dica">sem valor</span>'}</span><button type="button" class="marcar forte" data-i7="${ix}">${ent?'Receber':it.tipo==='cartao'?'Marcar paga':'Pagar'}</button></div></div>`}).join('')
+      :'<p class="dica" style="padding:6px 0">Nada vence nos próximos 7 dias.</p>'}
+  </div>
+
+  <div class="card"><h2>Próximos 3 meses</h2>
+    <p class="dica">O que já está previsto: parcelas dos cartões e contas fixas${temEntradas?', e as entradas fixas':''}. Compras novas ainda vão somar.</p>
+    <div class="meses3">${meses.map(m=>`<div class="m3">
+      <div class="m3cab"><b>${nomeMes(m.m)}</b>${temEntradas?`<span class="${m.sobra<0?'neg':'pos'}">${m.sobra<0?'Falta':'Sobra'} ${R(Math.abs(m.sobra))}</span>`:''}</div>
+      <div class="m3barra"><span>Saídas</span><i class="sai" style="width:${m.saidas/mx*100}%"></i><b>${R(m.saidas)}</b></div>
+      ${temEntradas?`<div class="m3barra"><span>Entradas</span><i class="ent" style="width:${m.entradas/mx*100}%"></i><b>${R(m.entradas)}</b></div>`:''}
+    </div>`).join('')}</div>
+  </div>
+
+  <button class="card ir" type="button" id="irPainel"><span><b>Para onde vai o dinheiro</b><span class="dica">Maiores gastos, categorias, cartões e o detalhe de cada lançamento</span></span>${'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>'}</button>`;
+  $('verContas').onclick=()=>irPara('4');$('irPainel').onclick=()=>{$('mesPainel').value=mesAtual;irPara('2','5')};
+  if($('irEntradas'))$('irEntradas').onclick=()=>{irPara('4');setTimeout(()=>$('entradasBox').scrollIntoView({behavior:'smooth',block:'start'}),300)};
+  s.querySelectorAll('[data-i7]').forEach(b=>b.onclick=async()=>{const it=itens7[+b.dataset.i7];
+    if(it.tipo==='entrada'||it.tipo==='conta'){abrirPagar(it);return}
+    b.disabled=true;b.textContent='Salvando…';try{await marcarPago(it.chave,true);toast(`Fatura do ${it.nome} marcada como paga.`);inicio()}catch(e){toast(e.message);b.disabled=false;b.textContent='Marcar paga'}});
+}
+
+/* ---------- lançar entrada ---------- */
+function opcoesEntrada(sel){let l=CFG.categorias.filter(c=>c.tipo==='Entrada').map(c=>c.nome);if(!l.length)l=['Salário'];if(!l.includes('Outras entradas'))l.push('Outras entradas');if(sel&&!l.includes(sel))l=[...l,sel];return l.map(c=>`<option${c===sel?' selected':''}>${esc(c)}</option>`).join('')}
+$('enSalvar').onclick=async()=>{const st=$('enStatus'),b=$('enSalvar');st.textContent='';
+  const valor=valorDigitado($('enValor').value),data=$('enData').value,cat=$('enCat').value,desc=$('enDesc').value.trim()||cat;
+  if(!valor){st.textContent='Digite o valor recebido.';$('enValor').focus();return}if(!data){st.textContent='Escolha a data.';return}if(!cat){st.textContent='Cadastre um tipo de entrada em Contas › Entradas fixas.';return}
+  b.disabled=true;b.textContent='Salvando…';
+  try{const res=await enviar([{data,descricao:desc,categoria:cat,valor,forma:'Entrada'}]);ultimosDados=null;
+    st.textContent=(res.offline?'Sem internet: guardado no aparelho. ':'Entrada salva: ')+`${desc}, ${R(valor)}.`;toast(res.offline?'Guardado no aparelho.':'Entrada salva.');$('enValor').value='';$('enDesc').value=''}
+  catch(e){st.textContent='Não consegui salvar. '+e.message}finally{b.disabled=false;b.textContent='Salvar entrada'}};
 
 aplicarConfig();
 aplicarUltimo();
@@ -1137,10 +1357,10 @@ async function salvarManual(){
   const l={data:$('data').value,descricao:$('desc').value.trim(),categoria:$('cat').value,valor:valorDigitado($('valor').value),forma:forma()};
   if(!l.data){st.textContent='Escolha a data da compra.';$('data').focus();return}
   if(!l.valor){st.textContent='Digite o valor da compra.';$('valor').focus();return}
-  if(!l.descricao){st.textContent='Digite onde foi a compra.';$('desc').focus();return}
+  if(!l.descricao){if(FIXAS.includes(l.categoria))l.descricao=l.categoria;else{st.textContent='Digite onde foi a compra. Só as contas fixas podem ficar sem.';$('desc').focus();return}}
   if(l.forma==='Crédito'){l.cartao=$('cartao').value;l.tipo=tipo();const n=l.tipo==='Parcelado'?Math.min(24,Math.max(2,parseInt($('vezes').value)||2)):1;parcelar(l,mesDaFatura(l.cartao,l.data),1,n,l.valor/n,l.valor)}
   salvando=true;b.disabled=true;b.textContent='Salvando…';
-  try{const res=await enviar([l]);ultimoSalvo=l;lembrarUltimo(l);ultimosDados=null;if(res.offline){st.textContent='Sem internet: '+l.descricao+', '+R(l.valor)+' ficou guardado no aparelho e vai para a planilha quando a conexão voltar.';toast('Guardado no aparelho.');$('desc').value='';$('valor').value='';catManual=false;ver();return}const onde=l.forma==='Crédito'?' Aparece no Painel em '+nomeMes(l.parcelasLista[0].mes)+', mês da fatura.':' Já aparece no Painel de '+nomeMes(l.data.slice(0,7))+'.';const msg=(MODO_TESTE?'Salvo no modo de teste: ':'Salvo na planilha: ')+l.descricao+', '+R(l.valor)+'.'+onde;st.textContent=msg;toast(MODO_TESTE?'Salvo no modo de teste.':'Salvo na planilha!');$('desc').value='';$('valor').value='';catManual=false;ver()}
+  try{const res=await enviar([l]);ultimoSalvo=l;lembrarUltimo(l);ultimosDados=null;if(res.offline){st.textContent='Sem internet: '+l.descricao+', '+R(l.valor)+' ficou guardado no aparelho e vai para a planilha quando a conexão voltar.';toast('Guardado no aparelho.');$('desc').value='';$('valor').value='';catManual=false;ver();return}const onde=l.forma==='Crédito'?' Conta em '+nomeMes(l.parcelasLista[0].mes)+', mês da fatura.':' Já conta em '+nomeMes(l.data.slice(0,7))+'.';const msg=(MODO_TESTE?'Salvo no modo de teste: ':'Salvo na planilha: ')+l.descricao+', '+R(l.valor)+'.'+onde;st.textContent=msg;toast(MODO_TESTE?'Salvo no modo de teste.':'Salvo na planilha!');$('desc').value='';$('valor').value='';catManual=false;ver();descOpcional()}
   catch(err){st.textContent='Não consegui salvar. '+(err.message||'Confira a internet e tente de novo.')}
   finally{salvando=false;b.disabled=false;b.textContent='Salvar lançamento'}
 }
@@ -1261,12 +1481,24 @@ function doMesTudo(d,mes){
   const dia=r=>String(r[0]).slice(0,10),catDe={},parcN=x=>{const m=String(x).match(/(\d+)\s*(?:de|\/)\s*(\d+)/);return m?[+m[1],+m[2]]:[1,1]};
   d.lanc.forEach(r=>{catDe[r[1]+'|'+r[5]]=r[2];catDe[r[1]]=catDe[r[1]]||r[2]});
   const vista=[],novas=[],antigas=[];
-  d.lanc.forEach(r=>{if(r[4]!=='Crédito'&&dia(r).slice(0,7)===mes)vista.push({data:dia(r),desc:r[1],cat:r[2],valor:+r[3]||0,onde:r[4],info:r[4],valorTotal:+r[3]||0,chave:{data:dia(r),descricao:r[1],cartao:''}})});
+  d.lanc.forEach(r=>{if(r[4]!=='Crédito'&&r[4]!=='Entrada'&&dia(r).slice(0,7)===mes)vista.push({data:dia(r),desc:r[1],cat:r[2],valor:+r[3]||0,onde:r[4],info:r[4],valorTotal:+r[3]||0,chave:{data:dia(r),descricao:r[1],cartao:''}})});
   d.parc.forEach(r=>{if(String(r[5]).slice(0,7)!==mes)return;const[k,n]=parcN(r[3]);
     const it={data:dia(r),desc:r[1],cat:catDe[r[1]+'|'+r[2]]||catDe[r[1]]||'Outros',valor:+r[4]||0,onde:r[2],cartao:r[2],
       info:n>1?`parcela ${k} de ${n}`:'à vista no cartão',n,chave:{data:dia(r),descricao:r[1],cartao:r[2]}};
     (k>1?antigas:novas).push(it)});
-  return {vista,novas,antigas,todos:[...vista,...novas,...antigas]};
+  // contas fixas com valor previsto se repetem todo mês até serem pagas (só do mês atual em diante)
+  const previstas=[];
+  if(mes>=mesAtual){const pg=MODO_TESTE?pagosLocal():PAGOS,ja=new Set([...vista,...novas,...antigas].map(i=>i.cat));
+    const[aa,mm]=mes.split('-').map(Number),ult=new Date(aa,mm,0).getDate();
+    CFG.categorias.filter(c=>c.tipo==='Fixa'&&+c.valor>0&&!ja.has(c.nome)&&!pg[`${mes}|conta|${c.nome}`]).forEach(c=>{const dd=c.venc?Math.min(+c.venc,ult):1;
+      previstas.push({data:`${mes}-${String(dd).padStart(2,'0')}`,desc:c.nome,cat:c.nome,valor:+c.valor,onde:'Prevista',prevista:true,info:c.venc?`prevista, vence dia ${c.venc}`:'prevista'})})}
+  // compras no cartão feitas neste mês (aparecem aqui para consulta; o valor conta no mês da fatura)
+  const primeiraFatura={};d.parc.forEach(r=>{const k=dia(r)+'|'+r[1]+'|'+r[2],m=String(r[5]).slice(0,7);if(!primeiraFatura[k]||m<primeiraFatura[k])primeiraFatura[k]=m});
+  const compras=[];d.lanc.forEach(r=>{if(r[4]!=='Crédito'||dia(r).slice(0,7)!==mes)return;const f=primeiraFatura[dia(r)+'|'+r[1]+'|'+r[5]];
+    const n=+((String(r[7]).match(/de\s*(\d+)/)||String(r[7]).match(/(\d+)\s*x/)||[])[1])||1;
+    compras.push({data:dia(r),desc:r[1],cat:r[2],valor:+r[3]||0,valorTotal:+r[3]||0,onde:r[5],cartao:r[5],n,
+      info:`${r[6]==='Parcelado'&&r[7]?'parcelado '+r[7]:'à vista'}${f?`, entra na fatura de ${nomeMes(f)}`:''}`,chave:{data:dia(r),descricao:r[1],cartao:r[5]}})});
+  return {vista,novas,antigas,previstas,compras,todos:[...vista,...novas,...antigas,...previstas]};
 }
 async function painel(){
   const s=$('saida');s.innerHTML='<p class="vazio">Carregando...</p>';
@@ -1276,16 +1508,14 @@ async function painel(){
   const M=doMesTudo(d,mes),A=doMesTudo(d,ant),tot=l=>l.reduce((x,i)=>x+i.valor,0);
   const t=tot(M.todos),ta=tot(A.todos),dif=ta?Math.round((t-ta)/ta*100):null;
   // fatura marcada como paga na aba Contas (ou aqui): sai do "falta pagar"
-  const pagosMes=MODO_TESTE?pagosLocal():PAGOS,faturaPaga=c=>!!pagosMes[`${mes}|cartao|${c}`];
-  const pagoCartoes=[...M.novas,...M.antigas].filter(i=>faturaPaga(i.cartao)).reduce((x,i)=>x+i.valor,0);
-  const jaPago=tot(M.vista)+pagoCartoes,falta=Math.max(0,Math.round((t-jaPago)*100)/100);
-  if(!M.todos.length){s.innerHTML=`<div class="card vazio"><p style="margin:0 0 4px;color:var(--fg);font-weight:600">Nada para pagar em ${nomeMes(mes)}</p><p class="dica">Lance uma compra na aba Lançar ou importe as faturas dos cartões na aba Faturas.</p></div>`;return}
+  const RM=resumoMes(d,mes),faturaPaga=RM.faturaPaga,jaPago=RM.jaPago,falta=RM.falta;
+  if(!M.todos.length&&!M.compras.length){s.innerHTML=`<div class="card vazio"><p style="margin:0 0 4px;color:var(--fg);font-weight:600">Nada para pagar em ${nomeMes(mes)}</p><p class="dica">Lance um gasto ou importe a fatura do cartão na aba Lançar.</p></div>`;return}
   const soma=(l,ch)=>{const o={},nome={};l.forEach(i=>{let k=i[ch];if(ch==='desc'){const c=String(k).toLowerCase().normalize('NFD').replace(/[^a-z0-9]/g,'').slice(0,12);if(!nome[c]||String(k).length<nome[c].length)nome[c]=k;k=c}o[k]=(o[k]||0)+i.valor});return Object.entries(o).map(([k,v])=>[nome[k]||k,v]).sort((a,b)=>b[1]-a[1])};
   const antCat=Object.fromEntries(soma(A.todos,'cat'));
   const barras=(l,comp)=>{const mx=l[0]?.[1]||1;return l.slice(0,5).map(([k,v],i)=>{
     let tag='';if(comp&&ta){const a=antCat[k];tag=a?(v>a?`<span class="pill sobe">+${R(v-a)}</span>`:`<span class="pill desce">−${R(a-v)}</span>`):'<span class="pill sobe">novo</span>'}
     return`<div class="barra${i===0?' top':''}"><span class="nome">${esc(k)} ${tag}</span><span class="num">${R(v)}</span><span class="trilho"><i style="width:${Math.max(3,v/mx*100)}%"></i></span></div>`}).join('')};
-  const PARTES=[['vista','Dinheiro, Pix e débito',M.vista,'p1'],['novas','Compras novas no cartão',M.novas,'p2'],['antigas','Parcelas de compras antigas',M.antigas,'p3']];
+  const PARTES=[['vista','Dinheiro, Pix e débito',M.vista,'p1'],['novas','Cartão: compras desta fatura',M.novas,'p2'],['antigas','Cartão: parcelas que continuam',M.antigas,'p3'],['previstas','Contas fixas a pagar',M.previstas,'p4']].filter(p=>p[0]!=='previstas'||p[2].length);
   const pct=v=>t?v/t*100:0,qtd=n=>n+(n===1?' lançamento':' lançamentos');
   // cartões
   const pc={};d.parc.forEach(r=>{const c=r[2]||'Cartão',m=String(r[5]).slice(0,7),v=+r[4]||0;pc[c]=pc[c]||{novas:0,antigas:0,depois:0};if(m>mes)pc[c].depois+=v});
@@ -1295,7 +1525,7 @@ async function painel(){
   // listas
   const ehNovo=i=>ultimoSalvo&&i.desc===ultimoSalvo.descricao&&i.data===ultimoSalvo.data;
   let chaves=[];
-  const linha=i=>{chaves.push(i);return`<div class="lanc acao${ehNovo(i)?' novo':''}"><span class="d">${i.data.slice(8,10)}/${i.data.slice(5,7)}</span><span class="n">${esc(i.desc)}</span><span class="num">${R(i.valor)}</span><span class="i">${esc(i.cat)} · ${esc(i.info)}</span><span class="bts"><button type="button" class="ed" data-ed="${chaves.length-1}" aria-label="Editar ${esc(i.desc)}">${IC_LAPIS}</button><button type="button" class="x" data-x="${chaves.length-1}" aria-label="Excluir ${esc(i.desc)}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg></button></span></div>`};
+  const linha=i=>{if(i.prevista)return`<div class="lanc"><span class="d">${i.data.slice(8,10)}/${i.data.slice(5,7)}</span><span class="n">${esc(i.desc)}</span><span class="num">${R(i.valor)}</span><span class="i">${esc(i.info)} · pague na aba Contas</span></div>`;chaves.push(i);return`<div class="lanc acao${ehNovo(i)?' novo':''}"><span class="d">${i.data.slice(8,10)}/${i.data.slice(5,7)}</span><span class="n">${esc(i.desc)}</span><span class="num">${R(i.valor)}</span><span class="i">${esc(i.cat)} · ${esc(i.info)}</span><span class="bts"><button type="button" class="ed" data-ed="${chaves.length-1}" aria-label="Editar ${esc(i.desc)}">${IC_LAPIS}</button><button type="button" class="x" data-x="${chaves.length-1}" aria-label="Excluir ${esc(i.desc)}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg></button></span></div>`};
   const porData=l=>[...l].sort((a,b)=>b.data.localeCompare(a.data));
   const lista=(l,agrupar)=>{if(!l.length)return'<p class="dica" style="padding:8px 0">Nada aqui neste mês.</p>';
     if(!agrupar)return porData(l).map(linha).join('');
@@ -1303,13 +1533,14 @@ async function painel(){
     return Object.entries(g).sort((a,b)=>tot(b[1])-tot(a[1])).map(([c,li])=>`<h4><span>${esc(c)}</span><span>${R(tot(li))}</span></h4>${porData(li).map(linha).join('')}`).join('')};
   // contas fixas x variáveis
   const fx=M.todos.filter(i=>FIXAS.includes(i.cat)),vr=M.todos.filter(i=>!FIXAS.includes(i.cat)),tfx=tot(fx),tvr=tot(vr);
-  const fxCat=soma(fx,'cat'),faltam=FIXAS.filter(c=>!fxCat.some(([k])=>k===c));
+  const fxReal=fx.filter(i=>!i.prevista),fxCat=soma(fxReal,'cat'),faltam=FIXAS.filter(c=>!fxCat.some(([k])=>k===c)),tPrev=tot(M.previstas);
   const blocoFixas=`<div class="card"><h2>Contas fixas e variáveis</h2>
     <div class="pilha" role="img" aria-label="Divisão entre contas fixas e variáveis">${tfx?`<i class="p1" style="width:${pct(tfx)}%"></i>`:''}${tvr?`<i class="p2" style="width:${pct(tvr)}%"></i>`:''}</div>
     <div style="margin-top:6px"><div class="linha"><span><b class="ponto p1"></b>&nbsp; Contas fixas</span><span class="num"><b>${R(tfx)}</b> <span class="dica">${Math.round(pct(tfx))}%</span></span></div>
     <div class="linha"><span><b class="ponto p2"></b>&nbsp; Contas variáveis</span><span class="num"><b>${R(tvr)}</b> <span class="dica">${Math.round(pct(tvr))}%</span></span></div></div>
     ${fxCat.length?`<h3 style="font-size:.875rem;color:var(--muted);font-weight:500;margin:16px 0 0">Contas fixas lançadas</h3>${fxCat.map(([c,v])=>`<div class="linha"><span>${esc(c)}</span><span class="num">${R(v)}</span></div>`).join('')}`:''}
-    ${faltam.length?`<p class="dica" style="margin-top:12px">Ainda sem lançamento em ${nomeMes(mes)}: ${faltam.join(', ')}.</p>`:'<p class="ok" style="margin-top:12px">Todas as contas fixas do mês foram lançadas.</p>'}
+    ${tPrev?`<div class="linha"><span>Previstas, ainda não pagas (${M.previstas.length})</span><span class="num">${R(tPrev)}</span></div>`:''}
+    ${faltam.length?`<p class="dica" style="margin-top:12px">Ainda sem pagamento em ${nomeMes(mes)}: ${faltam.join(', ')}.</p>`:'<p class="ok" style="margin-top:12px">Todas as contas fixas do mês foram pagas.</p>'}
   </div>`;
   const futuros=[1,2,3,4,5,6].map(k=>{const m=somaMes(mes,k);return[nomeMes(m),d.parc.filter(r=>String(r[5]).slice(0,7)===m).reduce((x,r)=>x+(+r[4]||0),0)]}).filter(f=>f[1]>0);
 
@@ -1317,9 +1548,10 @@ async function painel(){
   <div class="card resumo">
     <div class="total"><div><div class="sub">Falta pagar em ${nomeMes(mes)}</div><div class="grande">${R(falta)}</div></div>
       ${ta?`<div class="sub">Mês anterior ${R(ta)} <span class="pill ${dif>0?'sobe':'desce'}">${dif>0?'+':''}${dif}%</span></div>`:''}</div>
-    <div class="pagobar"><div class="linha"><span>Total do mês</span><span class="num">${R(t)}</span></div><div class="linha"><span>Já pago</span><span class="num" style="color:var(--good)">${R(jaPago)}</span></div><div class="linha soma"><span>Falta pagar</span><span class="num">${R(falta)}</span></div></div>
+    <div class="pagobar">${RM.entradas?`<div class="linha"><span>Entradas do mês</span><span class="num">${R(RM.entradas)}</span></div>`:''}<div class="linha"><span>Sai do bolso em ${nomeMes(mes)}</span><span class="num">${R(t)}</span></div><div class="linha"><span>Já pago</span><span class="num" style="color:var(--good)">${R(jaPago)}</span></div><div class="linha soma"><span>Falta pagar</span><span class="num">${R(falta)}</span></div>${RM.entradas?`<div class="linha soma"><span>${RM.sobra<0?'Falta no mês':'Sobra do mês'}</span><span class="num ${RM.sobra<0?'neg':'pos'}">${R(Math.abs(RM.sobra))}</span></div>`:''}</div>
     <div class="pilha" role="img" aria-label="Divisão do total do mês">${PARTES.filter(p=>tot(p[2])>0).map(p=>`<i class="${p[3]}" style="width:${pct(tot(p[2]))}%"></i>`).join('')}</div>
-    <div>${PARTES.map(p=>`<button type="button" class="parte" data-abre="${p[0]}"><b class="ponto ${p[3]}"></b><span class="rot">${p[1]}</span><span class="num">${R(tot(p[2]))}</span><span class="q">${qtd(p[2].length)}</span><span class="ver">ver lista</span></button>`).join('')}</div>
+    <div>${PARTES.map(p=>`<button type="button" class="parte" data-abre="${p[0]}"><b class="ponto ${p[3]}"></b><span class="rot">${p[1]}</span><span class="num">${R(tot(p[2]))}</span><span class="q">${p[0]==='previstas'?`${p[2].length} ${p[2].length===1?'conta prevista':'contas previstas'}, ainda não pagas`:qtd(p[2].length)}</span><span class="ver">ver lista</span></button>`).join('')}
+    ${M.compras.length?`<button type="button" class="parte extra" data-abre="compras"><b class="ponto p5"></b><span class="rot">Compras no cartão feitas em ${nomeMes(mes)}</span><span class="num">${R(tot(M.compras))}</span><span class="q">${qtd(M.compras.length)} · contam no mês da fatura, não somam aqui</span><span class="ver">ver lista</span></button>`:''}</div>
   </div>
 
   <div class="card ofensores"><h2>Maiores ofensores de ${nomeMes(mes)}</h2>
@@ -1331,12 +1563,13 @@ async function painel(){
   ${blocoFixas}
 
   ${cartoes.length?`<div class="card"><h2>Faturas dos cartões em ${nomeMes(mes)}</h2>
-    ${cartoes.map(([c,o])=>{const pg=faturaPaga(c),tem=o.novas+o.antigas>0;return`<div class="lanc semdata fat${pg?' paga':''}"><span class="n">${esc(c)} ${tem?`<span class="pill ${pg?'desce':'neutro'}">${pg?'Paga':'Em aberto'}</span>`:''}</span><span class="num">${R(o.novas+o.antigas)}</span><span class="i">${R(o.novas)} em compras novas · ${R(o.antigas)} em parcelas antigas${o.depois?` · faltam ${R(o.depois)} nos próximos meses`:''}</span>${tem?`<button type="button" class="marcar" data-pgfat="${esc(c)}">${pg?'Desfazer':'Marcar paga'}</button>`:''}</div>`}).join('')}
+    ${cartoes.map(([c,o])=>{const pg=faturaPaga(c),tem=o.novas+o.antigas>0;return`<div class="lanc semdata fat${pg?' paga':''}"><span class="n">${esc(c)} ${tem?`<span class="pill ${pg?'desce':'neutro'}">${pg?'Paga':'Em aberto'}</span>`:''}</span><span class="num">${R(o.novas+o.antigas)}</span><span class="i">${R(o.novas)} em compras desta fatura · ${R(o.antigas)} em parcelas que continuam${o.depois?` · faltam ${R(o.depois)} nos próximos meses`:''}</span>${tem?`<button type="button" class="marcar" data-pgfat="${esc(c)}">${pg?'Desfazer':'Marcar paga'}</button>`:''}</div>`}).join('')}
     ${futuros.length?`<h3 style="font-size:.875rem;color:var(--muted);font-weight:500;margin:18px 0 2px">Parcelas já comprometidas nos próximos meses</h3><div class="tabela" style="margin-top:0"><table>${futuros.map(f=>`<tr><td>${f[0]}</td><td class="num">${R(f[1])}</td></tr>`).join('')}</table></div>`:''}
     <div class="linha soma" style="border-top:1px solid var(--line)"><span>Total comprometido depois de ${nomeMes(mes)}</span><span class="num">${R(depois)}</span></div></div>`:''}
 
   <h2 style="font-size:1.05rem;margin:8px 0 -4px">Detalhe do mês</h2>
-  ${PARTES.map(p=>`<details class="bloco" id="bloco-${p[0]}"><summary><b class="ponto ${p[3]}"></b><b>${p[1]}</b><span class="num">${R(tot(p[2]))}</span><span class="q">${qtd(p[2].length)}</span></summary><div class="corpo">${lista(p[2],p[0]!=='vista')}</div></details>`).join('')}`;
+  ${PARTES.map(p=>`<details class="bloco" id="bloco-${p[0]}"><summary><b class="ponto ${p[3]}"></b><b>${p[1]}</b><span class="num">${R(tot(p[2]))}</span><span class="q">${qtd(p[2].length)}</span></summary><div class="corpo">${lista(p[2],p[0]==='novas'||p[0]==='antigas')}</div></details>`).join('')}
+  ${M.compras.length?`<details class="bloco" id="bloco-compras"><summary><b class="ponto p5"></b><b>Compras no cartão feitas em ${nomeMes(mes)}</b><span class="num">${R(tot(M.compras))}</span><span class="q">${qtd(M.compras.length)} · o valor entra no mês da fatura de cada cartão</span></summary><div class="corpo">${lista(M.compras,true)}</div></details>`:''}`;
   s.querySelectorAll('[data-abre]').forEach(b=>b.onclick=()=>{const el=$('bloco-'+b.dataset.abre);el.open=true;el.scrollIntoView({behavior:'smooth',block:'start'})});
   s.querySelectorAll('[data-pgfat]').forEach(b=>b.onclick=async()=>{const c=b.dataset.pgfat,pg=faturaPaga(c);b.disabled=true;b.textContent='Salvando…';
     try{await marcarPago(`${mes}|cartao|${c}`,!pg);toast(pg?`Fatura do ${c} voltou para em aberto.`:`Fatura do ${c} marcada como paga.`);painel()}catch(e){toast(e.message);b.disabled=false;b.textContent=pg?'Desfazer':'Marcar paga'}});
@@ -1516,7 +1749,7 @@ $('btnTrocarSenha').onclick=async()=>{const n=$('novaSenha').value;if(n.length<4
   const j=await chamarInv({op:'trocarSenha',novaSenha:n},$('btnTrocarSenha'),'Trocando...');if(j&&!j.erro){invSenha=n;$('novaSenha').value='';toast('Senha trocada.')}else if(j)toast(msgErro(j))};
 limparFormInv();
 
-$('limpar').onclick=()=>{memLocal={lanc:[],parc:[]};gravarLocal();toast('Dados de teste apagados.');fecharAjustes();if(!document.querySelector('[data-sec="2"]').hidden)painel()};
+$('limpar').onclick=()=>{memLocal={lanc:[],parc:[]};gravarLocal();toast('Dados de teste apagados.');fecharAjustes();recarregarVisivel()};
 ver();
 iniciarApp();
 if('serviceWorker' in navigator&&!PODE_TESTE)window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
