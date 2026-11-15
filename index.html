@@ -313,7 +313,6 @@ label.diac input.mudou{border-color:var(--fg);background:var(--surface)}
     <p class="dica" id="taTexto"></p>
     <label>Senha<input type="password" id="taSenha" autocomplete="current-password"></label>
     <label id="taBox2" hidden>Repita a senha<input type="password" id="taSenha2" autocomplete="new-password"></label>
-    <label class="check"><input type="checkbox" id="taLembrar" checked> Lembrar neste aparelho</label>
     <button class="btn" id="taEntrar" type="button">Entrar</button>
     <p class="dica" id="taStatus" role="status" aria-live="polite"></p>
   </div>
@@ -495,7 +494,7 @@ label.diac input.mudou{border-color:var(--fg);background:var(--surface)}
   </div>
   <div class="ajuste">
     <h3>Senha do app</h3>
-    <p class="dica">Pedida quando o app é aberto num aparelho novo. Os investimentos continuam com a senha própria deles.</p>
+    <p class="dica">Pedida toda vez que o app é aberto e quando ele fica mais de 1 minuto em segundo plano. Os investimentos continuam com a senha própria deles.</p>
     <details class="mini"><summary>Trocar senha do app</summary>
       <div class="grid" style="margin-top:12px"><label>Senha atual<input type="password" id="saAtual" autocomplete="current-password"></label><label>Senha nova<input type="password" id="saNova" autocomplete="new-password"></label><button class="btn sec" id="saTrocar" type="button">Trocar senha</button></div>
     </details>
@@ -669,13 +668,15 @@ function semear(){ // exemplos só para o modo de teste
 
 /* ---------- conexão segura com a planilha ---------- */
 let tokenMem=null,temSenhaApp=false;
-const tokenApp=()=>{if(tokenMem)return tokenMem;try{return localStorage.getItem('gg_token')||sessionStorage.getItem('gg_token')}catch(e){return null}};
-function guardarToken(t,lembrar){tokenMem=t;try{localStorage.removeItem('gg_token');sessionStorage.removeItem('gg_token');(lembrar?localStorage:sessionStorage).setItem('gg_token',t)}catch(e){}}
+// a chave de acesso vale só enquanto o app está aberto: fechou, pede a senha de novo
+try{localStorage.removeItem('gg_token')}catch(e){}
+const tokenApp=()=>{if(tokenMem)return tokenMem;try{return sessionStorage.getItem('gg_token')}catch(e){return null}};
+function guardarToken(t){tokenMem=t;try{sessionStorage.setItem('gg_token',t)}catch(e){}}
 function esquecerToken(){tokenMem=null;try{localStorage.removeItem('gg_token');sessionStorage.removeItem('gg_token')}catch(e){}}
 const nomeAparelho=()=>{const u=navigator.userAgent;return(/iphone|ipad/i.test(u)?'iPhone':/android/i.test(u)?'Android':/windows/i.test(u)?'Windows':/mac/i.test(u)?'Mac':'Aparelho')+' · '+new Date().toLocaleDateString('pt-BR')};
 async function api(corpo,opc={}){
   const ctl=new AbortController(),t=setTimeout(()=>ctl.abort(),opc.tempo||30000);let r;
-  try{r=await fetch(URL_PLANILHA,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({...corpo,token:tokenApp()}),signal:ctl.signal})}
+  try{r=await fetch(URL_PLANILHA,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({token:tokenApp(),...corpo}),signal:ctl.signal})}
   catch(e){const err=new Error(e.name==='AbortError'?'A planilha demorou demais para responder.':'Sem conexão com a planilha. Confira a internet.');err.rede=true;throw err}
   finally{clearTimeout(t)}
   let j=null;try{j=await r.json()}catch(e){}
@@ -694,33 +695,40 @@ async function prepararTrava(msg){
   temSenhaApp=!!st.temSenhaApp;
   const criar=!temSenhaApp&&!st.erroMsg;
   $('taTitulo').textContent=criar?'Crie a senha do app':'Gastos protegido';
-  $('taTexto').textContent=st.erroMsg||(criar?'Seus gastos ficam protegidos. Crie uma senha de pelo menos 4 caracteres; ela será pedida em cada aparelho novo.':'Digite a senha do app para ver seus gastos.');
+  $('taTexto').textContent=st.erroMsg||(criar?'Seus gastos ficam protegidos. Crie uma senha de pelo menos 4 caracteres; ela será pedida toda vez que o app for aberto.':'Digite a senha do app para ver seus gastos.');
   $('taBox2').hidden=!criar;$('taEntrar').textContent=criar?'Criar senha e entrar':'Entrar';$('taEntrar').disabled=!!st.erroMsg;
   $('taSenha').autocomplete=criar?'new-password':'current-password';$('taSenha').value=$('taSenha2').value='';
   $('taStatus').textContent=msg||'';
   $('travaApp').hidden=false;document.body.classList.add('travado');setTimeout(()=>$('taSenha').focus(),50);
 }
 async function entrarNoApp(){
-  const s1=$('taSenha').value,criar=!temSenhaApp,st=$('taStatus'),b=$('taEntrar'),lembrar=$('taLembrar').checked;st.textContent='';
+  const s1=$('taSenha').value,criar=!temSenhaApp,st=$('taStatus'),b=$('taEntrar');st.textContent='';
   if(s1.length<4){st.textContent=MSG_APP.senha_curta;return}
   if(criar&&s1!==$('taSenha2').value){st.textContent='As duas senhas estão diferentes.';return}
   b.disabled=true;const txt=b.textContent;b.textContent='Abrindo…';
   try{
-    if(MODO_TESTE){const h=await hashLocal('app:'+s1);if(criar)guardar('gg_app_teste',h);else if(pegar('gg_app_teste')!==h){st.textContent=MSG_APP.senha;return}guardarToken('teste',lembrar)}
+    if(MODO_TESTE){const h=await hashLocal('app:'+s1);if(criar)guardar('gg_app_teste',h);else if(pegar('gg_app_teste')!==h){st.textContent=MSG_APP.senha;return}guardarToken('teste')}
     else{let j;try{j=await api({acao:'entrar',senha:s1,criar,aparelho:nomeAparelho()})}catch(e){st.textContent=e.message;return}
       if(j.erro){st.textContent=(MSG_APP[j.erro]||'Não deu certo. Tente de novo.')+(j.erro==='senha'&&j.restam!=null?` Restam ${j.restam} tentativas.`:'')+(j.erro==='bloqueado'?` Tente de novo em ${j.minutos} minutos.`:'');if(j.erro==='sem_senha')prepararTrava();return}
-      guardarToken(j.token,lembrar)}
+      guardarToken(j.token)}
     temSenhaApp=true;$('travaApp').hidden=true;document.body.classList.remove('travado');
     try{ultimosDados=await carregar()}catch(e){}posEntrada();
   }finally{b.disabled=false;b.textContent=txt}
 }
 $('taEntrar').onclick=entrarNoApp;
 ['taSenha','taSenha2'].forEach(id=>$(id).addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();entrarNoApp()}}));
+// travar o app: ao voltar depois de mais de 1 minuto em segundo plano
+function travarApp(msg){const t=tokenApp();esquecerToken();if(t&&!MODO_TESTE)api({acao:'sair',token:t}).catch(()=>{});
+  if(!$('ajustes').hidden)fecharAjustes();if(!$('editar').hidden)fecharEditar();travarInv?.();prepararTrava(msg)}
+let ocultoEm=0;
+document.addEventListener('visibilitychange',()=>{if(document.hidden){ocultoEm=Date.now();return}
+  if(ocultoEm&&Date.now()-ocultoEm>60000&&$('travaApp').hidden&&tokenApp())travarApp('O app ficou parado. Digite a senha para continuar.');ocultoEm=0});
+window.addEventListener('pageshow',e=>{if(e.persisted&&$('travaApp').hidden)travarApp('Digite a senha para continuar.')});
 $('btnSair').onclick=async()=>{if(!MODO_TESTE){try{await api({acao:'sair'})}catch(e){}}esquecerToken();fecharAjustes();travarInv?.();prepararTrava('Você saiu deste aparelho.')};
 $('saTrocar').onclick=async()=>{const a=$('saAtual').value,n=$('saNova').value,b=$('saTrocar');
   if(n.length<4){toast(MSG_APP.senha_curta);return}b.disabled=true;
   try{if(MODO_TESTE){if(pegar('gg_app_teste')!==await hashLocal('app:'+a)){toast('Senha atual incorreta.');return}guardar('gg_app_teste',await hashLocal('app:'+n))}
-    else{const j=await api({acao:'trocarSenhaApp',senha:a,novaSenha:n,aparelho:nomeAparelho()});if(j.erro){toast(j.erro==='senha'?'Senha atual incorreta.':(MSG_APP[j.erro]||'Não deu certo.'));return}guardarToken(j.token,!!localStorage.getItem('gg_token'))}
+    else{const j=await api({acao:'trocarSenhaApp',senha:a,novaSenha:n,aparelho:nomeAparelho()});if(j.erro){toast(j.erro==='senha'?'Senha atual incorreta.':(MSG_APP[j.erro]||'Não deu certo.'));return}guardarToken(j.token)}
     $('saAtual').value=$('saNova').value='';toast(MODO_TESTE?'Senha do app trocada.':'Senha trocada. Os outros aparelhos vão pedir a senha nova.')}
   catch(e){toast(e.message)}finally{b.disabled=false}};
 
