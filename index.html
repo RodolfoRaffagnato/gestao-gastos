@@ -132,12 +132,16 @@ td input[type=checkbox]{width:20px;height:20px;padding:0}
 .lanc .n{font-weight:500;overflow-wrap:anywhere}
 .lanc .num{font-weight:600}
 .lanc .i{grid-column:2/4;color:var(--muted);font-size:.8125rem}
-.lanc.acao{grid-template-columns:48px minmax(0,1fr) auto 36px}
-.lanc.acao .i{grid-column:2/4}
-.lanc .x{grid-column:4;grid-row:1/3;align-self:center;width:36px;height:36px;border-radius:10px;border:0;background:none;color:var(--muted-2);display:grid;place-items:center;cursor:pointer}
-.lanc .x:hover{background:var(--field);color:var(--bad)}
-.lanc .x.conf{background:var(--bad);color:#fff;width:auto;padding:0 10px;font-size:.75rem;font-weight:600;grid-column:3/5;grid-row:1/3}
-.lanc .x svg{width:18px;height:18px}
+.lanc.acao{grid-template-columns:48px minmax(0,1fr) auto;row-gap:0}
+.lanc.acao .i{grid-column:2;grid-row:2;align-self:center}
+.lanc .bts{grid-column:3;grid-row:2;justify-self:end;margin-right:-8px}
+.lanc.acao .d{grid-row:1/3}
+.bts{display:flex;gap:2px;flex:none}
+.bts button{width:36px;height:36px;border-radius:10px;border:0;background:none;color:var(--muted-2);display:grid;place-items:center;cursor:pointer}
+.bts button svg{width:18px;height:18px}
+.bts button:hover{background:var(--field);color:var(--fg)}
+.bts .x:hover{color:var(--bad)}
+.bts .x.conf{background:var(--bad);color:#fff;width:auto;padding:0 10px;font-size:.75rem;font-weight:600;white-space:nowrap}
 .lanc.novo{background:var(--field);border-radius:10px;padding-inline:10px;margin-inline:-10px}
 .lanc.semdata{grid-template-columns:minmax(0,1fr) auto}
 .lanc.semdata .i{grid-column:1/3}
@@ -229,6 +233,31 @@ details.bloco h4{margin:14px 0 0;padding-bottom:4px;font-size:.8125rem;font-weig
 @media (prefers-reduced-motion:no-preference){.folha{animation:folha .22s cubic-bezier(.2,.8,.2,1)}@keyframes folha{from{transform:translateY(24px);opacity:0}}}
 @media (prefers-reduced-motion:reduce){section,.folha{animation:none}}
 
+.ajlink{display:flex;justify-content:space-between;align-items:center;gap:12px;width:100%;background:none;border:0;padding:0;text-align:left;cursor:pointer;color:inherit}
+.ajlink svg{color:var(--muted-2);flex:none}
+.ajlink .dica{display:block;margin-top:2px}
+.itemcfg{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
+.itemcfg .n{font-weight:500}
+.itemcfg.ed{display:grid;gap:12px;padding:14px 0}
+#listaCats h4{font-size:.8125rem;font-weight:600;color:var(--muted);margin:16px 0 0}
+#listaCats h4:first-child{margin-top:4px}
+.novocfg{margin-top:20px;padding:16px;border-radius:16px;background:var(--field)}
+.novocfg input,.novocfg .chips{background:var(--surface)}
+.novocfg .chips label:has(input:checked){background:var(--field)}
+.travaApp{position:fixed;inset:0;z-index:60;background:var(--bg);display:grid;place-items:center;overflow:auto;padding:24px max(16px,env(safe-area-inset-right,0px)) 24px max(16px,env(safe-area-inset-left,0px))}
+.travaApp .trava{width:100%;max-width:380px}
+.travado .wrap,.travado .tabbar{visibility:hidden}
+label.check{flex-direction:row;align-items:center;gap:10px;color:var(--fg);font-size:.9rem;width:100%;max-width:300px}
+label.check input{width:20px;height:20px;padding:0}
+.aviso.fila{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.aviso.fila button{flex:none;border:0;background:var(--warn);color:var(--inverse);font-weight:600;font-size:.8125rem;padding:8px 12px;border-radius:10px;cursor:pointer}
+.busca{position:relative;margin-bottom:14px}
+.busca svg{position:absolute;left:14px;top:50%;width:18px;height:18px;transform:translateY(-50%);color:var(--muted-2);pointer-events:none}
+.busca input::-webkit-search-cancel-button{filter:grayscale(1);opacity:.6}
+.busca input{padding-left:42px;background:var(--surface);border-color:var(--line)}
+#resBusca{display:grid;gap:16px}
+#resBusca .lanc .d{line-height:1.2}
+details.mini summary{cursor:pointer;font-weight:500;font-size:.9rem;color:var(--fg);padding:4px 0}
 .toast{position:fixed;left:50%;bottom:calc(var(--tabbar) + 16px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--fg);color:var(--inverse);padding:12px 18px;border-radius:14px;font-weight:500;font-size:.9rem;max-width:calc(100% - 32px);text-align:center;box-shadow:0 8px 24px rgba(0,0,0,.2);z-index:40}
 @media (prefers-reduced-motion:no-preference){.toast{animation:sobe .2s ease-out}@keyframes sobe{from{opacity:0;transform:translate(-50%,8px)}}}
 
@@ -247,6 +276,18 @@ details.bloco h4{margin:14px 0 0;padding-bottom:4px;font-size:.8125rem;font-weig
 }
 </style>
 
+<div class="travaApp" id="travaApp" hidden>
+  <div class="trava">
+    <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><rect x="4.5" y="10.5" width="15" height="10" rx="2.5"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/></svg></span>
+    <h2 id="taTitulo">Gastos protegido</h2>
+    <p class="dica" id="taTexto"></p>
+    <label>Senha<input type="password" id="taSenha" autocomplete="current-password"></label>
+    <label id="taBox2" hidden>Repita a senha<input type="password" id="taSenha2" autocomplete="new-password"></label>
+    <label class="check"><input type="checkbox" id="taLembrar" checked> Lembrar neste aparelho</label>
+    <button class="btn" id="taEntrar" type="button">Entrar</button>
+    <p class="dica" id="taStatus" role="status" aria-live="polite"></p>
+  </div>
+</div>
 </head><body>
 <div class="wrap">
 <header class="appbar">
@@ -254,6 +295,7 @@ details.bloco h4{margin:14px 0 0;padding-bottom:4px;font-size:.8125rem;font-weig
   <button class="iconbtn" id="btnAjustes" type="button" aria-label="Ajustes" aria-haspopup="dialog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
 </header>
 <div class="aviso" id="avisoTeste" hidden>Modo de teste: os lançamentos ficam só neste aparelho e não vão para a planilha.</div>
+<div class="aviso fila" id="avisoFila" hidden><span id="filaTexto"></span><button type="button" id="filaEnviar">Enviar agora</button></div>
 
 <section data-sec="0">
 <h2 class="titulo">Novo lançamento</h2>
@@ -262,7 +304,8 @@ details.bloco h4{margin:14px 0 0;padding-bottom:4px;font-size:.8125rem;font-weig
     <label>Valor<input id="valor" inputmode="decimal" placeholder="R$ 0,00"></label>
     <label>Data da compra<input type="date" id="data"></label>
   </div>
-  <label>Onde comprou<input id="desc" placeholder="Ex.: Assaí Barra"></label>
+  <label>Onde comprou<input id="desc" placeholder="Ex.: Assaí Barra" list="sugestoes" autocomplete="off"></label>
+  <datalist id="sugestoes"></datalist>
   <label>Categoria<select id="cat"></select></label>
   <div class="grupo"><span class="t">Forma de pagamento</span>
     <div class="chips" id="formas"></div></div>
@@ -298,7 +341,9 @@ details.bloco h4{margin:14px 0 0;padding-bottom:4px;font-size:.8125rem;font-weig
 
 <section data-sec="2" hidden>
 <h2 class="titulo">Painel do mês</h2>
-<div class="mesnav">
+<div class="busca"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input type="search" id="busca" placeholder="Buscar compras, categorias ou cartões" aria-label="Buscar lançamentos"></div>
+<div id="resBusca" hidden></div>
+<div class="mesnav" id="mesnavBox">
   <button type="button" id="mesAnt" aria-label="Mês anterior"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m15 6-6 6 6 6"/></svg></button>
   <input type="month" id="mesPainel" aria-label="Mês do painel">
   <button type="button" id="mesProx" aria-label="Próximo mês"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></button>
@@ -373,12 +418,15 @@ details.bloco h4{margin:14px 0 0;padding-bottom:4px;font-size:.8125rem;font-weig
 <div class="veu" id="ajustes" hidden>
 <div class="folha" role="dialog" aria-modal="true" aria-labelledby="ajTitulo">
   <div class="alca" aria-hidden="true"></div>
+  <div id="ajMain">
   <div class="cab"><h2 id="ajTitulo">Ajustes</h2><button class="iconbtn" id="ajFechar" type="button" aria-label="Fechar ajustes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
   <div class="ajuste">
     <h3>Instalar o app</h3>
     <p class="dica" id="instTexto">Coloque o app na tela inicial para abrir em tela cheia, como um aplicativo.</p>
     <button class="btn" id="btnInstalar" type="button">Instalar app</button>
   </div>
+  <div class="ajuste"><button class="ajlink" id="abrirCats" type="button"><span><h3>Categorias</h3><span class="dica" id="ajCatsInfo"></span></span><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></button></div>
+  <div class="ajuste"><button class="ajlink" id="abrirCartoes" type="button"><span><h3>Cartões</h3><span class="dica" id="ajCartoesInfo"></span></span><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></button></div>
   <div class="ajuste">
     <h3>Aparência</h3>
     <div class="chips" id="modos">
@@ -386,6 +434,14 @@ details.bloco h4{margin:14px 0 0;padding-bottom:4px;font-size:.8125rem;font-weig
       <label><input type="radio" name="modo" value="light"><span>Claro</span></label>
       <label><input type="radio" name="modo" value="dark"><span>Escuro</span></label>
     </div>
+  </div>
+  <div class="ajuste">
+    <h3>Senha do app</h3>
+    <p class="dica">Pedida quando o app é aberto num aparelho novo. Os investimentos continuam com a senha própria deles.</p>
+    <details class="mini"><summary>Trocar senha do app</summary>
+      <div class="grid" style="margin-top:12px"><label>Senha atual<input type="password" id="saAtual" autocomplete="current-password"></label><label>Senha nova<input type="password" id="saNova" autocomplete="new-password"></label><button class="btn sec" id="saTrocar" type="button">Trocar senha</button></div>
+    </details>
+    <button class="btn sec" id="btnSair" type="button">Sair deste aparelho</button>
   </div>
   <div class="ajuste">
     <div class="lin"><div><h3>Planilha</h3><p class="dica" id="ajConexao">Verificando conexão…</p></div></div>
@@ -396,20 +452,61 @@ details.bloco h4{margin:14px 0 0;padding-bottom:4px;font-size:.8125rem;font-weig
     <button class="btn sec peq" id="ajLimparRegras" type="button">Apagar</button></div>
   </div>
   <div class="ajuste">
-    <div class="lin"><div><h3>Versão</h3><p class="dica">Gestão de Gastos 2.0</p></div></div>
+    <div class="lin"><div><h3>Versão</h3><p class="dica">Gestão de Gastos 2.2</p></div></div>
+  </div>
+  </div>
+  <div id="ajCats" hidden>
+    <div class="cab"><button class="iconbtn" type="button" data-voltar aria-label="Voltar para Ajustes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m15 6-6 6 6 6"/></svg></button><h2>Categorias</h2><span style="width:44px"></span></div>
+    <div id="listaCats"></div>
+    <div class="novocfg grid">
+      <h3>Nova categoria</h3>
+      <label>Nome<input id="novaCat" placeholder="Ex.: Academia"></label>
+      <div class="chips"><label><input type="radio" name="novaCatTipo" value="Fixa" checked><span>Conta fixa</span></label><label><input type="radio" name="novaCatTipo" value="Variável"><span>Conta variável</span></label></div>
+      <button class="btn" id="addCat" type="button">Adicionar categoria</button>
+      <p class="dica">Ao renomear, os lançamentos antigos mudam junto. Ao excluir, eles vão para Outros.</p>
+    </div>
+  </div>
+  <div id="ajCartoes" hidden>
+    <div class="cab"><button class="iconbtn" type="button" data-voltar aria-label="Voltar para Ajustes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m15 6-6 6 6 6"/></svg></button><h2>Cartões</h2><span style="width:44px"></span></div>
+    <div id="listaCartoes"></div>
+    <div class="novocfg grid">
+      <h3>Novo cartão</h3>
+      <label>Nome do cartão<input id="novoCartao" placeholder="Ex.: Itaú"></label>
+      <div class="dois"><label>Dia de fechamento<input id="novoFech" inputmode="numeric" placeholder="Ex.: 3"></label><label>Dia de vencimento<input id="novoVenc" inputmode="numeric" placeholder="Ex.: 10"></label></div>
+      <button class="btn" id="addCartao" type="button">Adicionar cartão</button>
+      <p class="dica">Com o fechamento e o vencimento, a compra lançada à mão cai na fatura certa. Excluir um cartão só tira ele da lista; as compras antigas continuam.</p>
+    </div>
+  </div>
+</div>
+</div>
+
+<div class="veu" id="editar" hidden>
+<div class="folha" role="dialog" aria-modal="true" aria-labelledby="edTitulo">
+  <div class="alca" aria-hidden="true"></div>
+  <div class="cab"><h2 id="edTitulo">Editar lançamento</h2><button class="iconbtn" id="edFechar" type="button" aria-label="Fechar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
+  <div class="grid">
+    <label>Onde comprou<input id="edDesc"></label>
+    <label>Categoria<select id="edCat"></select></label>
+    <div class="grid" id="edVista">
+      <div class="dois"><label>Valor<input id="edValor" inputmode="decimal"></label><label>Data<input type="date" id="edData"></label></div>
+      <label>Forma de pagamento<select id="edForma"><option>Dinheiro</option><option>Pix</option><option>Débito</option></select></label>
+    </div>
+    <p class="dica" id="edCredInfo" hidden></p>
+    <div class="dois"><button class="btn" id="edSalvar" type="button">Salvar alterações</button><button class="btn sec" id="edCancelar" type="button">Cancelar</button></div>
+    <p class="dica" id="edStatus" role="status" aria-live="polite"></p>
   </div>
 </div>
 </div>
 
 <script>
 const URL_PLANILHA='https://script.google.com/macros/s/AKfycbzAvekFfLEBPIYMii6F2Hb3BO0i1tCoFKzGgU8b3_lYILKoT1l15hK1PEcyXDuhotTc/exec';
-const CARTOES=['Bradesco','Méliuz','Assaí','Mercado Pago','Amazon','Nubank'];
+let CARTOES=['Bradesco','Méliuz','Assaí','Mercado Pago','Amazon','Nubank'];
 const FORMAS=['Dinheiro','Pix','Débito','Crédito'];
 let memoria={};
 const FIXAS_CASA=['Aluguel','Luz','Gás','Luz Teresópolis','Água Teresópolis','Internet Teresópolis','Colégio Pedro','Transporte Pedro','Celular Samanta','Aluguel Terreiro','Contador Terreiro'];
-const FIXAS=[...FIXAS_CASA,'Assinaturas','Seguros'];
-const VARIAVEIS=['Mercado','Combustível','Casa','Restaurante','Saúde','Transporte','Escola','Lazer','Compras','Tarifas','Outros'];
-const CATS=[...FIXAS,...VARIAVEIS];
+let FIXAS=[...FIXAS_CASA,'Assinaturas','Seguros'];
+let VARIAVEIS=['Mercado','Combustível','Casa','Restaurante','Saúde','Transporte','Escola','Lazer','Compras','Tarifas','Outros'];
+let CATS=[...FIXAS,...VARIAVEIS];
 const REGRAS=[
  [/anuidade|mensalidade - plano|\biof\b|juros|encargo|tarifa/i,'Tarifas'],
  [/ifood|99food|ifd\*(?!supermerc)|arcos dourados|mc ?donald|restaur|lanch|padaria|\bbar\b|pizza|burger|madero|cafe|lattos/i,'Restaurante'],
@@ -489,14 +586,20 @@ function gravarLocal(){try{localStorage.setItem(LS,JSON.stringify(memLocal))}cat
 function ativarTeste(){MODO_TESTE=true;$('avisoTeste').hidden=false;if(typeof atualizarAjustes==='function'&&!$('ajustes').hidden)atualizarAjustes()}
 function linhasDe(lista){const lanc=[],parc=[];lista.forEach(l=>{lanc.push([l.data,l.descricao,l.categoria,l.valor,l.forma,l.cartao||'',l.tipo||'',l.parcelas||'']);(l.parcelasLista||[]).forEach(p=>parc.push([l.data,l.descricao,l.cartao,p.numero,p.valor,p.mes]))});return{lanc,parc}}
 async function enviar(lista){
-  if(!MODO_TESTE){const ctl=new AbortController(),t=setTimeout(()=>ctl.abort(),25000);
-    try{await fetch(URL_PLANILHA,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify({lancamentos:lista}),signal:ctl.signal});return}
-    catch(e){if(e.name==='AbortError')throw new Error('A planilha demorou demais para responder.');if(!PODE_TESTE)throw new Error('Sem conexão com a planilha. Confira a internet.');ativarTeste()}finally{clearTimeout(t)}}
-  const d=lerLocal(),n=linhasDe(lista);d.lanc.push(...n.lanc);d.parc.push(...n.parc);gravarLocal();
+  lista.forEach(l=>{l.id=l.id||('L'+Date.now().toString(36)+Math.random().toString(36).slice(2,7))});
+  if(!MODO_TESTE){
+    try{await api({lancamentos:lista});return{ok:true}}
+    catch(e){if(!e.rede)throw e;if(PODE_TESTE)ativarTeste();else{const f=lerFila();f.push(lista);gravarFila(f);return{offline:true}}}}
+  const d=lerLocal(),n=linhasDe(lista);d.lanc.push(...n.lanc);d.parc.push(...n.parc);gravarLocal();return{ok:true};
 }
 async function carregar(){
-  if(!MODO_TESTE){try{const d=await(await fetch(URL_PLANILHA)).json();estadoConexao='ok';return{lanc:d.lancamentos.slice(1),parc:d.parcelas.slice(1)}}catch(e){if(!PODE_TESTE){estadoConexao='erro';throw new Error('Sem conexão com a planilha. Confira a internet.')}ativarTeste()}}
-  return lerLocal();
+  if(!MODO_TESTE){
+    try{const d=await api({acao:'dados'});
+      if(!Array.isArray(d.lancamentos)){const err=new Error('Falta atualizar o Apps Script da planilha com o arquivo novo.');err.script=true;throw err}
+      estadoConexao='ok';lerConfigServidor(d);lerRegrasServidor(d);
+      const r={lanc:d.lancamentos.slice(1),parc:d.parcelas.slice(1)};juntarFila(r);atualizarHistorico(r);return r}
+    catch(e){if(e.rede&&PODE_TESTE)ativarTeste();else{if(e.rede)estadoConexao='erro';throw e}}}
+  const r=lerLocal();atualizarHistorico(r);return r;
 }
 function semear(){ // exemplos só para o modo de teste
   const m=new Date().toISOString().slice(0,7),a=somaMes(m,-1);
@@ -504,6 +607,127 @@ function semear(){ // exemplos só para o modo de teste
   const lista=ex.map(e=>({data:e[0],descricao:e[1],categoria:e[2],valor:e[3],forma:e[4]}));
   lista.push(parcelar({data:a+'-20',descricao:'Magalu geladeira (exemplo)',categoria:'Casa',valor:2400,forma:'Crédito',cartao:'Bradesco',tipo:'Parcelado'},somaMes(a,1),1,6,400,2400));
   const n=linhasDe(lista);memLocal.lanc.push(...n.lanc);memLocal.parc.push(...n.parc);gravarLocal();
+}
+
+/* ---------- conexão segura com a planilha ---------- */
+let tokenMem=null,temSenhaApp=false;
+const tokenApp=()=>{if(tokenMem)return tokenMem;try{return localStorage.getItem('gg_token')||sessionStorage.getItem('gg_token')}catch(e){return null}};
+function guardarToken(t,lembrar){tokenMem=t;try{localStorage.removeItem('gg_token');sessionStorage.removeItem('gg_token');(lembrar?localStorage:sessionStorage).setItem('gg_token',t)}catch(e){}}
+function esquecerToken(){tokenMem=null;try{localStorage.removeItem('gg_token');sessionStorage.removeItem('gg_token')}catch(e){}}
+const nomeAparelho=()=>{const u=navigator.userAgent;return(/iphone|ipad/i.test(u)?'iPhone':/android/i.test(u)?'Android':/windows/i.test(u)?'Windows':/mac/i.test(u)?'Mac':'Aparelho')+' · '+new Date().toLocaleDateString('pt-BR')};
+async function api(corpo){
+  const ctl=new AbortController(),t=setTimeout(()=>ctl.abort(),30000);let r;
+  try{r=await fetch(URL_PLANILHA,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({...corpo,token:tokenApp()}),signal:ctl.signal})}
+  catch(e){const err=new Error(e.name==='AbortError'?'A planilha demorou demais para responder.':'Sem conexão com a planilha. Confira a internet.');err.rede=true;throw err}
+  finally{clearTimeout(t)}
+  let j=null;try{j=await r.json()}catch(e){}
+  if(!j||typeof j!=='object'){const err=new Error('A planilha não respondeu como esperado. Atualize o Apps Script com o arquivo novo.');err.script=true;throw err}
+  if(j.erro==='token'){esquecerToken();prepararTrava('Por segurança, digite a senha do app de novo.');const err=new Error('Digite a senha do app para continuar.');err.token=true;throw err}
+  return j;
+}
+
+/* ---------- senha do app ---------- */
+const MSG_APP={senha:'Senha incorreta.',bloqueado:'Muitas tentativas erradas.',senha_curta:'A senha precisa ter pelo menos 4 caracteres.',sem_senha:'Ainda não existe senha. Crie uma.'};
+async function prepararTrava(msg){
+  let st;
+  if(MODO_TESTE)st={temSenhaApp:!!pegar('gg_app_teste')};
+  else{try{st=await api({acao:'statusApp'})}catch(e){if(e.rede&&PODE_TESTE){ativarTeste();return prepararTrava(msg)}st={erroMsg:e.message}}}
+  if(!('temSenhaApp' in st)&&!st.erroMsg)st={erroMsg:'Falta atualizar o Apps Script da planilha para a versão com senha do app. O passo a passo está no chat.'};
+  temSenhaApp=!!st.temSenhaApp;
+  const criar=!temSenhaApp&&!st.erroMsg;
+  $('taTitulo').textContent=criar?'Crie a senha do app':'Gastos protegido';
+  $('taTexto').textContent=st.erroMsg||(criar?'Seus gastos ficam protegidos. Crie uma senha de pelo menos 4 caracteres; ela será pedida em cada aparelho novo.':'Digite a senha do app para ver seus gastos.');
+  $('taBox2').hidden=!criar;$('taEntrar').textContent=criar?'Criar senha e entrar':'Entrar';$('taEntrar').disabled=!!st.erroMsg;
+  $('taSenha').autocomplete=criar?'new-password':'current-password';$('taSenha').value=$('taSenha2').value='';
+  $('taStatus').textContent=msg||'';
+  $('travaApp').hidden=false;document.body.classList.add('travado');setTimeout(()=>$('taSenha').focus(),50);
+}
+async function entrarNoApp(){
+  const s1=$('taSenha').value,criar=!temSenhaApp,st=$('taStatus'),b=$('taEntrar'),lembrar=$('taLembrar').checked;st.textContent='';
+  if(s1.length<4){st.textContent=MSG_APP.senha_curta;return}
+  if(criar&&s1!==$('taSenha2').value){st.textContent='As duas senhas estão diferentes.';return}
+  b.disabled=true;const txt=b.textContent;b.textContent='Abrindo…';
+  try{
+    if(MODO_TESTE){const h=await hashLocal('app:'+s1);if(criar)guardar('gg_app_teste',h);else if(pegar('gg_app_teste')!==h){st.textContent=MSG_APP.senha;return}guardarToken('teste',lembrar)}
+    else{let j;try{j=await api({acao:'entrar',senha:s1,criar,aparelho:nomeAparelho()})}catch(e){st.textContent=e.message;return}
+      if(j.erro){st.textContent=(MSG_APP[j.erro]||'Não deu certo. Tente de novo.')+(j.erro==='senha'&&j.restam!=null?` Restam ${j.restam} tentativas.`:'')+(j.erro==='bloqueado'?` Tente de novo em ${j.minutos} minutos.`:'');if(j.erro==='sem_senha')prepararTrava();return}
+      guardarToken(j.token,lembrar)}
+    temSenhaApp=true;$('travaApp').hidden=true;document.body.classList.remove('travado');
+    try{await carregar()}catch(e){}posEntrada();
+  }finally{b.disabled=false;b.textContent=txt}
+}
+$('taEntrar').onclick=entrarNoApp;
+['taSenha','taSenha2'].forEach(id=>$(id).addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();entrarNoApp()}}));
+$('btnSair').onclick=async()=>{if(!MODO_TESTE){try{await api({acao:'sair'})}catch(e){}}esquecerToken();fecharAjustes();travarInv?.();prepararTrava('Você saiu deste aparelho.')};
+$('saTrocar').onclick=async()=>{const a=$('saAtual').value,n=$('saNova').value,b=$('saTrocar');
+  if(n.length<4){toast(MSG_APP.senha_curta);return}b.disabled=true;
+  try{if(MODO_TESTE){if(pegar('gg_app_teste')!==await hashLocal('app:'+a)){toast('Senha atual incorreta.');return}guardar('gg_app_teste',await hashLocal('app:'+n))}
+    else{const j=await api({acao:'trocarSenhaApp',senha:a,novaSenha:n,aparelho:nomeAparelho()});if(j.erro){toast(j.erro==='senha'?'Senha atual incorreta.':(MSG_APP[j.erro]||'Não deu certo.'));return}guardarToken(j.token,!!localStorage.getItem('gg_token'))}
+    $('saAtual').value=$('saNova').value='';toast(MODO_TESTE?'Senha do app trocada.':'Senha trocada. Os outros aparelhos vão pedir a senha nova.')}
+  catch(e){toast(e.message)}finally{b.disabled=false}};
+
+/* ---------- salvar sem internet ---------- */
+const LSF='gg_fila';
+function lerFila(){try{return JSON.parse(localStorage.getItem(LSF))||[]}catch(e){return[]}}
+function gravarFila(f){try{localStorage.setItem(LSF,JSON.stringify(f))}catch(e){}atualizarAvisoFila()}
+function contarFila(){return lerFila().reduce((x,l)=>x+l.length,0)}
+function atualizarAvisoFila(){const n=contarFila();$('avisoFila').hidden=!n;$('filaTexto').textContent=n?`${n} ${n===1?'lançamento guardado':'lançamentos guardados'} no aparelho, esperando internet para ir à planilha.`:''}
+let enviandoFila=false;
+async function enviarFila(manual){
+  if(MODO_TESTE||enviandoFila||!tokenApp())return;let f=lerFila();if(!f.length)return;enviandoFila=true;let n=0;
+  try{while(f.length){await api({lancamentos:f[0]});n+=f[0].length;f.shift();gravarFila(f)}}
+  catch(e){if(manual)toast(e.rede?'Ainda sem internet. O app tenta de novo sozinho.':e.message)}
+  finally{enviandoFila=false}
+  if(n)toast(`${n} ${n===1?'lançamento enviado':'lançamentos enviados'} para a planilha.`);
+}
+window.addEventListener('online',()=>enviarFila());
+$('filaEnviar').onclick=()=>enviarFila(true);
+function juntarFila(d){lerFila().forEach(lista=>{const n=linhasDe(lista);d.lanc.push(...n.lanc);d.parc.push(...n.parc)})}
+
+/* ---------- categorias aprendidas na planilha ---------- */
+function lerRegrasServidor(d){if(!Array.isArray(d.regras))return;d.regras.forEach(r=>{if(r&&r[0])memoria[String(r[0])]=String(r[1])});try{localStorage.setItem('regras',JSON.stringify(memoria))}catch(e){}}
+async function enviarRegras(novas,limpar){if(MODO_TESTE||(!limpar&&!Object.keys(novas||{}).length))return;try{await api({acao:'regras',novas:novas||{},limpar:!!limpar})}catch(e){}}
+
+/* ---------- lançamento rápido ---------- */
+let histCat={};
+function atualizarHistorico(d){const vistos=new Map();for(let i=d.lanc.length-1;i>=0&&vistos.size<300;i--){const r=d.lanc[i];if(!r[1])continue;const k=semAcento(r[1]);if(!vistos.has(k))vistos.set(k,[String(r[1]),r[2]])}
+  histCat={};vistos.forEach(([,c],k)=>histCat[k]=c);$('sugestoes').innerHTML=[...vistos.values()].slice(0,150).map(([n])=>`<option value="${esc(n)}"></option>`).join('')}
+function lembrarUltimo(l){guardar('gg_ultimo',JSON.stringify({forma:l.forma,cartao:l.cartao||''}))}
+function aplicarUltimo(){let u=null;try{u=JSON.parse(pegar('gg_ultimo'))}catch(e){}if(!u)return;
+  const f=document.querySelector(`[name=forma][value="${u.forma}"]`);if(f)f.checked=true;if(u.cartao&&CARTOES.includes(u.cartao))$('cartao').value=u.cartao;ver()}
+
+/* ---------- busca ---------- */
+let ultimosDados=null,tBusca;
+$('busca').addEventListener('input',()=>{clearTimeout(tBusca);tBusca=setTimeout(buscar,200)});
+async function buscar(){
+  const q=semAcento($('busca').value),res=$('resBusca');
+  if(q.length<2){res.hidden=true;$('saida').hidden=false;$('mesnavBox').hidden=false;return}
+  res.hidden=false;$('saida').hidden=true;$('mesnavBox').hidden=true;
+  if(!ultimosDados){res.innerHTML='<p class="vazio">Buscando…</p>';try{ultimosDados=await carregar()}catch(e){res.innerHTML=`<p class="card vazio">${esc(e.message)}</p>`;return}}
+  const d=ultimosDados,dia=v=>String(v).slice(0,10),itens=[];
+  d.lanc.forEach(r=>{if(!r[1])return;const cred=r[4]==='Crédito';if(!semAcento([r[1],r[2],r[4],r[5]].join(' ')).includes(q))return;
+    const n=+((String(r[7]).match(/de\s*(\d+)/)||String(r[7]).match(/(\d+)\s*x/)||[])[1])||1;
+    itens.push({data:dia(r[0]),desc:r[1],cat:r[2],valor:+r[3]||0,valorTotal:+r[3]||0,onde:cred?r[5]:r[4],n,
+      info:cred?`${r[5]} · ${r[6]==='Parcelado'&&r[7]?'parcelado '+r[7]:'à vista'}`:r[4],chave:{data:dia(r[0]),descricao:r[1],cartao:cred?r[5]:''}})});
+  itens.sort((a,b)=>b.data.localeCompare(a.data));const total=itens.reduce((x,i)=>x+i.valor,0),mostra=itens.slice(0,100);
+  res.innerHTML=`<div class="card"><h2>${itens.length} ${itens.length===1?'resultado':'resultados'}</h2>
+    <p class="dica">Total das compras encontradas: ${R(total)}${itens.length>100?'. Mostrando as 100 mais recentes.':''}</p>
+    ${mostra.length?mostra.map((i,ix)=>`<div class="lanc acao"><span class="d">${i.data.slice(8,10)}/${i.data.slice(5,7)}<br>${i.data.slice(2,4)}</span><span class="n">${esc(i.desc)}</span><span class="num">${R(i.valor)}</span><span class="i">${esc(i.cat)} · ${esc(i.info)}</span><span class="bts"><button type="button" class="ed" data-bed="${ix}" aria-label="Editar ${esc(i.desc)}">${IC_LAPIS}</button><button type="button" class="x" data-bx="${ix}" aria-label="Excluir ${esc(i.desc)}">${IC_LIXO}</button></span></div>`).join(''):'<p class="vazio">Nada encontrado. Tente outra palavra.</p>'}</div>`;
+  res.querySelectorAll('[data-bed]').forEach(b=>b.onclick=()=>abrirEditar(mostra[+b.dataset.bed]));
+  res.querySelectorAll('[data-bx]').forEach(b=>b.onclick=()=>confirmar(b,mostra[+b.dataset.bx].n>1?`Excluir compra (${mostra[+b.dataset.bx].n}x)`:'Excluir',async()=>{b.disabled=true;b.textContent='Excluindo…';
+    try{await excluirLanc(mostra[+b.dataset.bx].chave);toast('Lançamento excluído.');ultimosDados=null;buscar()}catch(e){toast(e.message);b.disabled=false;b.classList.remove('conf');b.innerHTML=b.dataset.ic}}));
+}
+function atualizarDepoisDeMudar(){ultimosDados=null;if($('busca').value.trim().length>=2)buscar();else painel()}
+
+/* ---------- início ---------- */
+function posEntrada(){atualizarAvisoFila();enviarFila();if(!document.querySelector('[data-sec="2"]').hidden)painel()}
+async function iniciarApp(){
+  atualizarAvisoFila();
+  if(!MODO_TESTE&&!tokenApp()){await prepararTrava();return}
+  if(MODO_TESTE&&!tokenApp()){await prepararTrava();return}
+  try{await carregar()}catch(e){if(e.token)return;if(e.rede&&PODE_TESTE){}}
+  if(MODO_TESTE&&!tokenApp()){await prepararTrava();return}
+  posEntrada();
 }
 
 /* ---------- aviso rápido ---------- */
@@ -525,13 +749,13 @@ $('cartao').innerHTML=$('cartaoPdf').innerHTML=CARTOES.map(c=>`<option>${c}</opt
 $('formas').innerHTML=FORMAS.map((f,i)=>`<label><input type="radio" name="forma" value="${f}"${i===1?' checked':''}><span>${f}</span></label>`).join('');
 // a categoria acompanha a descrição até você escolher uma na mão
 let catManual=false;$('cat').addEventListener('change',()=>{catManual=true});
-$('desc').addEventListener('change',()=>{if(!catManual)$('cat').value=categoria($('desc').value)});
+$('desc').addEventListener('change',()=>{if(catManual)return;const h=histCat[semAcento($('desc').value)];$('cat').value=h&&CATS.includes(h)?h:categoria($('desc').value)});
 const forma=()=>document.querySelector('[name=forma]:checked').value;
 const tipo=()=>document.querySelector('[name=tipo]:checked').value;
 function ver(){
   const c=forma()==='Crédito',p=c&&tipo()==='Parcelado';$('credito').hidden=!c;$('boxVezes').hidden=!p;
   const v=valorDigitado($('valor').value),n=Math.max(2,parseInt($('vezes').value)||2);$('menos').disabled=n<=2;$('mais').disabled=n>=24;
-  $('previaParc').textContent=c?(p&&v?`${n}x de ${R(v/n)}, a primeira na fatura de ${nomeMes(somaMes($('data').value.slice(0,7),1))}.`:v?`Entra na fatura de ${nomeMes(somaMes($('data').value.slice(0,7),1))}.`:''):'';
+  $('previaParc').textContent=c?(p&&v?`${n}x de ${R(v/n)}, a primeira na fatura de ${nomeMes(mesDaFatura($('cartao').value,$('data').value))}.`:v?`Entra na fatura de ${nomeMes(mesDaFatura($('cartao').value,$('data').value))}.`:''):'';
 }
 
 /* ---------- ajustes ---------- */
@@ -542,7 +766,7 @@ function aplicarModo(m){if(m==='light'||m==='dark')document.documentElement.data
 $('modos').onchange=e=>{guardar('gg_modo',e.target.value);aplicarModo(e.target.value)};
 aplicarModo(pegar('gg_modo')||'auto');
 let focoAntes=null;
-function abrirAjustes(){focoAntes=document.activeElement;atualizarAjustes();$('ajustes').hidden=false;document.body.style.overflow='hidden';setTimeout(()=>$('ajFechar').focus(),30)}
+function abrirAjustes(){focoAntes=document.activeElement;mostrarAj('ajMain');atualizarAjustes();$('ajustes').hidden=false;document.body.style.overflow='hidden';setTimeout(()=>$('ajFechar').focus(),30)}
 function fecharAjustes(){$('ajustes').hidden=true;document.body.style.overflow='';focoAntes?.focus?.()}
 $('btnAjustes').onclick=abrirAjustes;$('ajFechar').onclick=fecharAjustes;
 $('ajustes').addEventListener('click',e=>{if(e.target===$('ajustes'))fecharAjustes()});
@@ -552,11 +776,14 @@ function atualizarAjustes(){
   const n=Object.keys(memoria).length;
   $('ajRegras').textContent=n?`${n} ${n===1?'descrição corrigida':'descrições corrigidas'} na importação. O app usa isso para acertar a categoria sozinho.`:'Quando você corrige uma categoria na importação, o app guarda aqui.';
   $('ajLimparRegras').hidden=!n;
-  $('ajConexao').textContent=MODO_TESTE?'Modo de teste: os dados ficam só neste aparelho.':estadoConexao==='ok'?'Conectada. Tudo o que você salva vai para a sua planilha do Google.':estadoConexao==='erro'?'Sem conexão com a planilha agora. Confira a internet.':'Verificando conexão…';
+  const nf=contarFila();
+  $('ajConexao').textContent=(nf?`${nf} ${nf===1?'lançamento esperando':'lançamentos esperando'} internet. `:'')+(MODO_TESTE?'Modo de teste: os dados ficam só neste aparelho.':estadoConexao==='ok'?'Conectada. Tudo o que você salva vai para a sua planilha do Google.':estadoConexao==='erro'?'Sem conexão com a planilha agora. O que você lançar fica guardado no aparelho.':'Verificando conexão…');
   $('limpar').hidden=!MODO_TESTE;
+  $('ajCatsInfo').textContent=`${FIXAS.length} contas fixas e ${VARIAVEIS.length} variáveis`;
+  $('ajCartoesInfo').textContent=`${CARTOES.length} ${CARTOES.length===1?'cartão':'cartões'}: ${CARTOES.join(', ')}`;
   atualizarInstalar();
 }
-$('ajLimparRegras').onclick=()=>{memoria={};try{localStorage.removeItem('regras')}catch(e){}atualizarAjustes();toast('Categorias aprendidas apagadas.')};
+$('ajLimparRegras').onclick=()=>{memoria={};try{localStorage.removeItem('regras')}catch(e){}enviarRegras({},true);atualizarAjustes();toast('Categorias aprendidas apagadas.')};
 // instalar o app
 let pedidoInstalar=null;
 const instalado=()=>matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
@@ -572,6 +799,139 @@ function atualizarInstalar(){const t=$('instTexto'),b=$('btnInstalar');b.hidden=
 $('btnInstalar').onclick=async()=>{
   if(pedidoInstalar){pedidoInstalar.prompt();const r=await pedidoInstalar.userChoice.catch(()=>({}));pedidoInstalar=null;if(r.outcome==='accepted')toast('Instalando o app…');atualizarInstalar();return}
   $('instTexto').textContent=ehIOS?'No Safari, toque no botão Compartilhar (quadrado com seta para cima) e depois em Adicionar à Tela de Início.':'No Chrome, toque nos três pontinhos no canto de cima e depois em Instalar app ou Adicionar à tela inicial.'};
+
+/* ---------- categorias e cartões editáveis (guardados na planilha) ---------- */
+const IC_LAPIS='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m13.5 6.5 4 4"/></svg>';
+const IC_LIXO='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>';
+const PADRAO_CFG={categorias:[...FIXAS.map(n=>({nome:n,tipo:'Fixa'})),...VARIAVEIS.map(n=>({nome:n,tipo:'Variável'}))],cartoes:CARTOES.map(n=>({nome:n,fech:'',venc:''}))};
+let CFG=null;try{CFG=JSON.parse(localStorage.getItem('gg_config'))}catch(e){}
+if(!CFG||!Array.isArray(CFG.categorias)||!Array.isArray(CFG.cartoes))CFG=JSON.parse(JSON.stringify(PADRAO_CFG));
+const copiaCfg=()=>JSON.parse(JSON.stringify(CFG));
+const semAcento=t=>String(t||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().trim();
+function aplicarConfig(){
+  FIXAS=CFG.categorias.filter(c=>c.tipo==='Fixa').map(c=>c.nome);VARIAVEIS=CFG.categorias.filter(c=>c.tipo!=='Fixa').map(c=>c.nome);CATS=[...FIXAS,...VARIAVEIS];
+  CARTOES=CFG.cartoes.map(c=>c.nome);
+  const sc=$('cat').value;$('cat').innerHTML=opcoesCat(CATS.includes(sc)?sc:(CATS.includes('Mercado')?'Mercado':CATS[0]));
+  for(const id of ['cartao','cartaoPdf']){const v=$(id).value;$(id).innerHTML=CARTOES.map(c=>`<option>${esc(c)}</option>`).join('');if(CARTOES.includes(v))$(id).value=v}
+  try{localStorage.setItem('gg_config',JSON.stringify(CFG))}catch(e){}
+  if(typeof ver==='function')ver();
+}
+function lerConfigServidor(d){
+  if(!d||!d.config)return;
+  const cats=(d.categorias||[]).filter(r=>r&&r[0]!==''&&r[0]!=null).map(r=>({nome:String(r[0]).trim(),tipo:semAcento(r[1]).startsWith('f')?'Fixa':'Variável'}));
+  const cars=(d.cartoes||[]).filter(r=>r&&(Array.isArray(r)?r[0]:r)).map(r=>Array.isArray(r)?{nome:String(r[0]).trim(),fech:+r[1]||'',venc:+r[2]||''}:{nome:String(r).trim(),fech:'',venc:''});
+  if(cats.length)CFG.categorias=cats;if(cars.length)CFG.cartoes=cars;aplicarConfig();
+}
+// em qual fatura cai uma compra no crédito (usa o fechamento e o vencimento do cartão, quando cadastrados)
+function mesDaFatura(cartao,data){
+  const c=CFG.cartoes.find(x=>x.nome===cartao),base=String(data).slice(0,7);if(!base)return mesAtual;
+  if(!c||!c.fech||!c.venc)return somaMes(base,1);
+  const dia=+String(data).slice(8,10),fechaDepois=dia>=+c.fech?1:0;
+  return somaMes(base,fechaDepois+(+c.venc>+c.fech?0:1));
+}
+async function salvarConfig(novo,renomear={}){
+  if(!MODO_TESTE){let j=null;
+    try{j=await api({acao:'config',categorias:novo.categorias,cartoes:novo.cartoes,renomear})}catch(e){if(!(e.rede&&PODE_TESTE))throw e;ativarTeste()}
+    if(!MODO_TESTE&&!j.config)throw new Error('Para editar categorias e cartões, atualize o Apps Script da planilha.')}
+  if(MODO_TESTE){const d=lerLocal(),troca=(lin,col,pares)=>lin.forEach(l=>(pares||[]).forEach(([de,para])=>{if(l[col]===de)l[col]=para}));
+    troca(d.lanc,2,renomear.categorias);troca(d.lanc,5,renomear.cartoes);troca(d.parc,2,renomear.cartoes);gravarLocal()}
+  const mudadas={};(renomear.categorias||[]).forEach(([de,para])=>{for(const k in memoria)if(memoria[k]===de){memoria[k]=para;mudadas[k]=para}});enviarRegras(mudadas);
+  try{localStorage.setItem('regras',JSON.stringify(memoria))}catch(e){}
+  CFG=novo;aplicarConfig();
+}
+
+// telas dentro dos Ajustes
+function mostrarAj(v){['ajMain','ajCats','ajCartoes'].forEach(id=>$(id).hidden=id!==v);if(v==='ajCats')renderCats();if(v==='ajCartoes')renderCartoes();$('ajustes').querySelector('.folha').scrollTop=0;
+  const alvo=$(v).querySelector('[data-voltar]')||$('ajFechar');setTimeout(()=>alvo.focus(),30)}
+$('abrirCats').onclick=()=>mostrarAj('ajCats');$('abrirCartoes').onclick=()=>mostrarAj('ajCartoes');
+document.querySelectorAll('[data-voltar]').forEach(b=>b.onclick=()=>{mostrarAj('ajMain');atualizarAjustes()});
+let cfgOcupado=false;
+async function mudarCfg(novo,ren,msg,depois){if(cfgOcupado)return;cfgOcupado=true;
+  try{await salvarConfig(novo,ren);toast(msg)}catch(e){toast(e.message)}finally{cfgOcupado=false;depois()}}
+function confirmar(b,txt,acao){if(!b.classList.contains('conf')){b.dataset.ic=b.innerHTML;b.classList.add('conf');b.textContent=txt;setTimeout(()=>{if(b.isConnected&&b.classList.contains('conf')){b.classList.remove('conf');b.innerHTML=b.dataset.ic}},4000);return}acao()}
+const nomeRepetido=(lista,nome,ignorar)=>lista.some((c,i)=>i!==ignorar&&semAcento(c.nome)===semAcento(nome));
+
+function renderCats(editando=-1){
+  const grupos=[['Contas fixas',true],['Contas variáveis',false]];
+  $('listaCats').innerHTML=grupos.map(([t,fixa])=>`<h4>${t}</h4>`+CFG.categorias.map((c,i)=>[c,i]).filter(([c])=>(c.tipo==='Fixa')===fixa).map(([c,i])=>editando===i
+    ?`<div class="itemcfg ed"><label>Nome<input id="edCatNome" value="${esc(c.nome)}"></label><div class="chips"><label><input type="radio" name="edCatTipo" value="Fixa"${c.tipo==='Fixa'?' checked':''}><span>Conta fixa</span></label><label><input type="radio" name="edCatTipo" value="Variável"${c.tipo!=='Fixa'?' checked':''}><span>Conta variável</span></label></div>
+      <div class="dois"><button class="btn peq" type="button" data-salvarcat="${i}">Salvar</button><button class="btn sec peq" type="button" data-cancelar>Cancelar</button></div></div>`
+    :`<div class="itemcfg"><span class="n">${esc(c.nome)}</span><span class="bts"><button type="button" class="ed" data-editcat="${i}" aria-label="Editar ${esc(c.nome)}">${IC_LAPIS}</button>${c.nome==='Outros'?'':`<button type="button" class="x" data-delcat="${i}" aria-label="Excluir ${esc(c.nome)}">${IC_LIXO}</button>`}</span></div>`).join('')).join('');
+  const L=$('listaCats');
+  L.querySelectorAll('[data-editcat]').forEach(b=>b.onclick=()=>{renderCats(+b.dataset.editcat);setTimeout(()=>$('edCatNome')?.focus(),20)});
+  L.querySelectorAll('[data-cancelar]').forEach(b=>b.onclick=()=>renderCats());
+  L.querySelectorAll('[data-salvarcat]').forEach(b=>b.onclick=()=>{const i=+b.dataset.salvarcat,nome=$('edCatNome').value.trim(),tipo=document.querySelector('[name=edCatTipo]:checked').value;
+    if(!nome){toast('Digite o nome da categoria.');return}if(nomeRepetido(CFG.categorias,nome,i)){toast('Já existe uma categoria com esse nome.');return}
+    const novo=copiaCfg(),antigo=novo.categorias[i].nome;novo.categorias[i]={nome,tipo};
+    mudarCfg(novo,antigo!==nome?{categorias:[[antigo,nome]]}:{},antigo!==nome?`Categoria renomeada para ${nome}.`:'Categoria salva.',()=>renderCats())});
+  L.querySelectorAll('[data-delcat]').forEach(b=>b.onclick=()=>confirmar(b,'Excluir?',()=>{const i=+b.dataset.delcat,novo=copiaCfg(),antigo=novo.categorias[i].nome;novo.categorias.splice(i,1);
+    if(!novo.categorias.some(c=>c.nome==='Outros'))novo.categorias.push({nome:'Outros',tipo:'Variável'});
+    mudarCfg(novo,{categorias:[[antigo,'Outros']]},`${antigo} excluída. Os lançamentos dela foram para Outros.`,()=>renderCats())}));
+}
+$('addCat').onclick=()=>{const nome=$('novaCat').value.trim(),tipo=document.querySelector('[name=novaCatTipo]:checked').value;
+  if(!nome){toast('Digite o nome da categoria.');$('novaCat').focus();return}if(nomeRepetido(CFG.categorias,nome,-1)){toast('Já existe uma categoria com esse nome.');return}
+  const novo=copiaCfg();novo.categorias.push({nome,tipo});mudarCfg(novo,{},`${nome} adicionada em contas ${tipo==='Fixa'?'fixas':'variáveis'}.`,()=>{$('novaCat').value='';renderCats()})};
+$('novaCat').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();$('addCat').click()}});
+
+const textoDias=c=>c.fech&&c.venc?`Fecha dia ${c.fech} e vence dia ${c.venc}`:'Sem dia de fechamento: compras à mão entram na fatura do mês seguinte';
+const diaValido=v=>{const n=parseInt(v);return v===''||v==null?'':(n>=1&&n<=31?n:NaN)};
+function renderCartoes(editando=-1){
+  $('listaCartoes').innerHTML=CFG.cartoes.map((c,i)=>editando===i
+    ?`<div class="itemcfg ed"><label>Nome do cartão<input id="edCarNome" value="${esc(c.nome)}"></label>
+      <div class="dois"><label>Dia de fechamento<input id="edCarFech" inputmode="numeric" placeholder="Ex.: 3" value="${c.fech||''}"></label><label>Dia de vencimento<input id="edCarVenc" inputmode="numeric" placeholder="Ex.: 10" value="${c.venc||''}"></label></div>
+      <div class="dois"><button class="btn peq" type="button" data-salvarcar="${i}">Salvar</button><button class="btn sec peq" type="button" data-cancelar>Cancelar</button></div></div>`
+    :`<div class="itemcfg"><span><span class="n">${esc(c.nome)}</span><span class="dica" style="display:block">${textoDias(c)}</span></span><span class="bts"><button type="button" class="ed" data-editcar="${i}" aria-label="Editar ${esc(c.nome)}">${IC_LAPIS}</button>${CFG.cartoes.length>1?`<button type="button" class="x" data-delcar="${i}" aria-label="Excluir ${esc(c.nome)}">${IC_LIXO}</button>`:''}</span></div>`).join('');
+  const L=$('listaCartoes');
+  L.querySelectorAll('[data-editcar]').forEach(b=>b.onclick=()=>{renderCartoes(+b.dataset.editcar);setTimeout(()=>$('edCarNome')?.focus(),20)});
+  L.querySelectorAll('[data-cancelar]').forEach(b=>b.onclick=()=>renderCartoes());
+  L.querySelectorAll('[data-salvarcar]').forEach(b=>b.onclick=()=>{const i=+b.dataset.salvarcar,nome=$('edCarNome').value.trim(),fech=diaValido($('edCarFech').value.trim()),venc=diaValido($('edCarVenc').value.trim());
+    if(!nome){toast('Digite o nome do cartão.');return}if(nomeRepetido(CFG.cartoes,nome,i)){toast('Já existe um cartão com esse nome.');return}
+    if(Number.isNaN(fech)||Number.isNaN(venc)){toast('Os dias precisam ser números de 1 a 31.');return}
+    if(!!fech!==!!venc){toast('Preencha o dia de fechamento e o de vencimento, ou deixe os dois vazios.');return}
+    const novo=copiaCfg(),antigo=novo.cartoes[i].nome;novo.cartoes[i]={nome,fech,venc};
+    mudarCfg(novo,antigo!==nome?{cartoes:[[antigo,nome]]}:{},antigo!==nome?`Cartão renomeado para ${nome}.`:'Cartão salvo.',()=>renderCartoes())});
+  L.querySelectorAll('[data-delcar]').forEach(b=>b.onclick=()=>confirmar(b,'Excluir?',()=>{const i=+b.dataset.delcar,novo=copiaCfg(),antigo=novo.cartoes[i].nome;novo.cartoes.splice(i,1);
+    mudarCfg(novo,{},`${antigo} saiu da lista. As compras antigas dele continuam no Painel.`,()=>renderCartoes())}));
+}
+$('addCartao').onclick=()=>{const nome=$('novoCartao').value.trim(),fech=diaValido($('novoFech').value.trim()),venc=diaValido($('novoVenc').value.trim());
+  if(!nome){toast('Digite o nome do cartão.');$('novoCartao').focus();return}if(nomeRepetido(CFG.cartoes,nome,-1)){toast('Já existe um cartão com esse nome.');return}
+  if(Number.isNaN(fech)||Number.isNaN(venc)){toast('Os dias precisam ser números de 1 a 31.');return}
+  if(!!fech!==!!venc){toast('Preencha o dia de fechamento e o de vencimento, ou deixe os dois vazios.');return}
+  const novo=copiaCfg();novo.cartoes.push({nome,fech,venc});mudarCfg(novo,{},`${nome} adicionado.`,()=>{$('novoCartao').value=$('novoFech').value=$('novoVenc').value='';renderCartoes()})};
+
+/* ---------- editar lançamento ---------- */
+async function editarLanc(chave,novo){
+  if(!MODO_TESTE){const j=await api({acao:'editarLanc',chave,novo});
+    if(!('editados' in j))throw new Error('Para editar, atualize o Apps Script da planilha com o arquivo novo.');
+    if(!j.editados)throw new Error('Não achei esse lançamento na planilha.');return}
+  const d=lerLocal(),dia=v=>String(v).slice(0,10);
+  const r=[...d.lanc].reverse().find(l=>dia(l[0])===chave.data&&l[1]===chave.descricao&&String(l[5]||'')===String(chave.cartao||''));
+  if(!r)throw new Error('Não achei esse lançamento.');
+  if(chave.cartao&&novo.descricao!==chave.descricao)d.parc.forEach(q=>{if(dia(q[0])===chave.data&&q[1]===chave.descricao&&q[2]===chave.cartao)q[1]=novo.descricao});
+  r[1]=novo.descricao;r[2]=novo.categoria;if(!chave.cartao){r[0]=novo.data;r[3]=novo.valor;r[4]=novo.forma}
+  gravarLocal();
+}
+let edItem=null;
+function abrirEditar(it){edItem=it;const cred=!!it.chave.cartao;
+  $('edDesc').value=it.desc;$('edCat').innerHTML=opcoesCat(it.cat);$('edVista').hidden=cred;$('edCredInfo').hidden=!cred;
+  if(cred)$('edCredInfo').textContent=`Compra no ${it.chave.cartao}${it.n>1?`, em ${it.n} parcelas`:''}. Valor e parcelas vêm da fatura; para mudar o valor, exclua e lance de novo.`;
+  else{$('edData').value=it.data;$('edValor').value=String(it.valorTotal??it.valor).replace('.',',');$('edForma').value=it.onde}
+  $('edStatus').textContent='';$('editar').hidden=false;document.body.style.overflow='hidden';setTimeout(()=>$('edDesc').focus(),30)}
+function fecharEditar(){$('editar').hidden=true;document.body.style.overflow=''}
+$('edFechar').onclick=fecharEditar;$('edCancelar').onclick=fecharEditar;
+$('editar').addEventListener('click',e=>{if(e.target===$('editar'))fecharEditar()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('editar').hidden)fecharEditar()});
+$('edSalvar').onclick=async()=>{const it=edItem,st=$('edStatus'),b=$('edSalvar');if(!it)return;
+  const novo={descricao:$('edDesc').value.trim(),categoria:$('edCat').value};
+  if(!novo.descricao){st.textContent='Digite a descrição.';return}
+  if(!it.chave.cartao){novo.data=$('edData').value;novo.valor=valorDigitado($('edValor').value);novo.forma=$('edForma').value;
+    if(!novo.data||!novo.valor){st.textContent='Preencha a data e o valor.';return}}
+  b.disabled=true;b.textContent='Salvando…';
+  try{await editarLanc(it.chave,novo);fecharEditar();toast('Lançamento atualizado.');atualizarDepoisDeMudar()}
+  catch(e){st.textContent=e.message}finally{b.disabled=false;b.textContent='Salvar alterações'}};
+
+aplicarConfig();
+aplicarUltimo();
 
 /* ---------- mais e menos nas parcelas ---------- */
 function mudarVezes(d){const i=$('vezes');i.value=Math.min(24,Math.max(2,(parseInt(i.value)||2)+d));ver()}
@@ -596,9 +956,9 @@ async function salvarManual(){
   if(!l.data){st.textContent='Escolha a data da compra.';$('data').focus();return}
   if(!l.valor){st.textContent='Digite o valor da compra.';$('valor').focus();return}
   if(!l.descricao){st.textContent='Digite onde foi a compra.';$('desc').focus();return}
-  if(l.forma==='Crédito'){l.cartao=$('cartao').value;l.tipo=tipo();const n=l.tipo==='Parcelado'?Math.min(24,Math.max(2,parseInt($('vezes').value)||2)):1;parcelar(l,somaMes(l.data.slice(0,7),1),1,n,l.valor/n,l.valor)}
+  if(l.forma==='Crédito'){l.cartao=$('cartao').value;l.tipo=tipo();const n=l.tipo==='Parcelado'?Math.min(24,Math.max(2,parseInt($('vezes').value)||2)):1;parcelar(l,mesDaFatura(l.cartao,l.data),1,n,l.valor/n,l.valor)}
   salvando=true;b.disabled=true;b.textContent='Salvando…';
-  try{await enviar([l]);ultimoSalvo=l;const onde=l.forma==='Crédito'?' Aparece no Painel em '+nomeMes(l.parcelasLista[0].mes)+', mês da fatura.':' Já aparece no Painel de '+nomeMes(l.data.slice(0,7))+'.';const msg=(MODO_TESTE?'Salvo no modo de teste: ':'Salvo na planilha: ')+l.descricao+', '+R(l.valor)+'.'+onde;st.textContent=msg;toast(MODO_TESTE?'Salvo no modo de teste.':'Salvo na planilha!');$('desc').value='';$('valor').value='';catManual=false;ver()}
+  try{const res=await enviar([l]);ultimoSalvo=l;lembrarUltimo(l);ultimosDados=null;if(res.offline){st.textContent='Sem internet: '+l.descricao+', '+R(l.valor)+' ficou guardado no aparelho e vai para a planilha quando a conexão voltar.';toast('Guardado no aparelho.');$('desc').value='';$('valor').value='';catManual=false;ver();return}const onde=l.forma==='Crédito'?' Aparece no Painel em '+nomeMes(l.parcelasLista[0].mes)+', mês da fatura.':' Já aparece no Painel de '+nomeMes(l.data.slice(0,7))+'.';const msg=(MODO_TESTE?'Salvo no modo de teste: ':'Salvo na planilha: ')+l.descricao+', '+R(l.valor)+'.'+onde;st.textContent=msg;toast(MODO_TESTE?'Salvo no modo de teste.':'Salvo na planilha!');$('desc').value='';$('valor').value='';catManual=false;ver()}
   catch(err){st.textContent='Não consegui salvar. '+(err.message||'Confira a internet e tente de novo.')}
   finally{salvando=false;b.disabled=false;b.textContent='Salvar lançamento'}
 }
@@ -623,7 +983,7 @@ $('btnLer').onclick=async()=>{
   const b=$('btnLer');b.disabled=true;b.textContent='Lendo...';
   try{
     const L=await linhasDoPdf(f),id=identificar(L);
-    if(id.cartao)$('cartaoPdf').value=id.cartao;if(id.mes)$('mesPdf').value=id.mes;
+    if(id.cartao){const alvo=CARTOES.find(c=>c===id.cartao)||CARTOES.find(c=>semAcento(c)===semAcento(id.cartao))||CARTOES.find(c=>semAcento(c).includes(semAcento(id.cartao).split(' ')[0])||semAcento(id.cartao).includes(semAcento(c).split(' ')[0]));if(alvo)$('cartaoPdf').value=alvo;else id.cartao=null}if(id.mes)$('mesPdf').value=id.mes;
     const r=lerTextoFatura(L,$('mesPdf').value);itensPdf=r.itens;totalBanco=r.totalBanco;
     await marcarRepetidos();mostrarPrevia(id);
   }catch(err){$('previa').innerHTML='<p class="card vazio" style="margin-top:14px">Não consegui abrir esse PDF. Confira se é a fatura em PDF original, sem senha, e não uma foto.</p>'}
@@ -659,27 +1019,25 @@ function mostrarPrevia(id){
 }
 async function salvarPdf(){
   if(salvando)return;salvando=true;const b=$('btnSalvarPdf');b.disabled=true;b.textContent='Salvando...';
-  const cartao=$('cartaoPdf').value,mesF=$('mesPdf').value,lista=[];let futuras=0;
+  const cartao=$('cartaoPdf').value,mesF=$('mesPdf').value,lista=[],novasRegras={};let futuras=0;
   itensPdf.forEach((it,i)=>{if(!$('u'+i).checked)return;const cat=$('c'+i).value;
-    if(cat!==it.categoria)memoria[it.descricao.toLowerCase().slice(0,12)]=cat;
+    if(cat!==it.categoria){memoria[it.descricao.toLowerCase().slice(0,12)]=cat;novasRegras[it.descricao.toLowerCase().slice(0,12)]=cat}
     // na aba Lançamentos o valor é sempre o da compra inteira (parcela × vezes), igual ao lançamento à mão
     const l={data:it.data,descricao:it.descricao,categoria:cat,valor:it.n>1?Math.round(it.valor*it.n*100)/100:it.valor,forma:'Crédito',cartao,tipo:it.n>1?'Parcelado':'À vista'};
     lista.push(parcelar(l,mesF,it.k,it.n,it.valor));futuras+=it.n-it.k;
     if(it.n>1)l.parcelas=it.k+' de '+it.n});
   if(!lista.length){toast('Nenhuma compra marcada.');salvando=false;b.disabled=false;b.textContent='Salvar compras marcadas';return}
   try{localStorage.setItem('regras',JSON.stringify(memoria))}catch(e){}
-  try{await enviar(lista);itensPdf=[];$('pdf').value='';
-    $('previa').innerHTML=`<p class="card vazio" style="margin-top:14px">${lista.length} compras do ${esc(cartao)} salvas${futuras?`, com ${futuras} parcelas programadas para os próximos meses`:''}.</p>`}
+  try{const res=await enviar(lista);enviarRegras(novasRegras);itensPdf=[];$('pdf').value='';ultimosDados=null;
+    $('previa').innerHTML=`<p class="card vazio" style="margin-top:14px">${lista.length} compras do ${esc(cartao)} ${res.offline?'guardadas no aparelho; vão para a planilha quando a internet voltar':'salvas'}${futuras?`, com ${futuras} parcelas programadas para os próximos meses`:''}.</p>`}
   catch(e){toast('Não consegui salvar. Tente de novo.');b.disabled=false;b.textContent='Salvar compras marcadas'}
   finally{salvando=false}
 }
 
 /* ---------- excluir lançamento ---------- */
 async function excluirLanc(item){
-  if(!MODO_TESTE){let r;
-    try{r=await fetch(URL_PLANILHA,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({acao:'excluirLanc',item})})}catch(e){throw new Error('Sem conexão com a planilha. Confira a internet.')}
-    let j=null;try{j=await r.json()}catch(e){}
-    if(!j||!('excluidos' in j))throw new Error('Para excluir, atualize o Apps Script da planilha com o arquivo novo.');
+  if(!MODO_TESTE){const j=await api({acao:'excluirLanc',item});
+    if(!('excluidos' in j))throw new Error('Para excluir, atualize o Apps Script da planilha com o arquivo novo.');
     if(!j.excluidos)throw new Error('Não achei esse lançamento na planilha.');return}
   const d=lerLocal(),dia=v=>String(v).slice(0,10);
   const i=d.lanc.map((r,ix)=>ix).reverse().find(ix=>{const r=d.lanc[ix];return dia(r[0])===item.data&&r[1]===item.descricao&&String(r[5]||'')===String(item.cartao||'')});
@@ -698,7 +1056,7 @@ function doMesTudo(d,mes){
   const dia=r=>String(r[0]).slice(0,10),catDe={},parcN=x=>{const m=String(x).match(/(\d+)\s*(?:de|\/)\s*(\d+)/);return m?[+m[1],+m[2]]:[1,1]};
   d.lanc.forEach(r=>{catDe[r[1]+'|'+r[5]]=r[2];catDe[r[1]]=catDe[r[1]]||r[2]});
   const vista=[],novas=[],antigas=[];
-  d.lanc.forEach(r=>{if(r[4]!=='Crédito'&&dia(r).slice(0,7)===mes)vista.push({data:dia(r),desc:r[1],cat:r[2],valor:+r[3]||0,onde:r[4],info:r[4],chave:{data:dia(r),descricao:r[1],cartao:''}})});
+  d.lanc.forEach(r=>{if(r[4]!=='Crédito'&&dia(r).slice(0,7)===mes)vista.push({data:dia(r),desc:r[1],cat:r[2],valor:+r[3]||0,onde:r[4],info:r[4],valorTotal:+r[3]||0,chave:{data:dia(r),descricao:r[1],cartao:''}})});
   d.parc.forEach(r=>{if(String(r[5]).slice(0,7)!==mes)return;const[k,n]=parcN(r[3]);
     const it={data:dia(r),desc:r[1],cat:catDe[r[1]+'|'+r[2]]||catDe[r[1]]||'Outros',valor:+r[4]||0,onde:r[2],cartao:r[2],
       info:n>1?`parcela ${k} de ${n}`:'à vista no cartão',n,chave:{data:dia(r),descricao:r[1],cartao:r[2]}};
@@ -708,6 +1066,7 @@ function doMesTudo(d,mes){
 async function painel(){
   const s=$('saida');s.innerHTML='<p class="vazio">Carregando...</p>';
   let d;try{d=await carregar()}catch(e){s.innerHTML=`<p class="card vazio">${esc(e.message)}</p>`;return}
+  ultimosDados=d;
   const mes=$('mesPainel').value,ant=somaMes(mes,-1);
   const M=doMesTudo(d,mes),A=doMesTudo(d,ant),tot=l=>l.reduce((x,i)=>x+i.valor,0);
   const t=tot(M.todos),ta=tot(A.todos),dif=ta?Math.round((t-ta)/ta*100):null;
@@ -727,7 +1086,7 @@ async function painel(){
   // listas
   const ehNovo=i=>ultimoSalvo&&i.desc===ultimoSalvo.descricao&&i.data===ultimoSalvo.data;
   let chaves=[];
-  const linha=i=>{chaves.push(i);return`<div class="lanc acao${ehNovo(i)?' novo':''}"><span class="d">${i.data.slice(8,10)}/${i.data.slice(5,7)}</span><span class="n">${esc(i.desc)}</span><span class="num">${R(i.valor)}</span><span class="i">${esc(i.cat)} · ${esc(i.info)}</span><button type="button" class="x" data-x="${chaves.length-1}" aria-label="Excluir ${esc(i.desc)}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg></button></div>`};
+  const linha=i=>{chaves.push(i);return`<div class="lanc acao${ehNovo(i)?' novo':''}"><span class="d">${i.data.slice(8,10)}/${i.data.slice(5,7)}</span><span class="n">${esc(i.desc)}</span><span class="num">${R(i.valor)}</span><span class="i">${esc(i.cat)} · ${esc(i.info)}</span><span class="bts"><button type="button" class="ed" data-ed="${chaves.length-1}" aria-label="Editar ${esc(i.desc)}">${IC_LAPIS}</button><button type="button" class="x" data-x="${chaves.length-1}" aria-label="Excluir ${esc(i.desc)}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg></button></span></div>`};
   const porData=l=>[...l].sort((a,b)=>b.data.localeCompare(a.data));
   const lista=(l,agrupar)=>{if(!l.length)return'<p class="dica" style="padding:8px 0">Nada aqui neste mês.</p>';
     if(!agrupar)return porData(l).map(linha).join('');
@@ -735,7 +1094,7 @@ async function painel(){
     return Object.entries(g).sort((a,b)=>tot(b[1])-tot(a[1])).map(([c,li])=>`<h4><span>${esc(c)}</span><span>${R(tot(li))}</span></h4>${porData(li).map(linha).join('')}`).join('')};
   // contas fixas x variáveis
   const fx=M.todos.filter(i=>FIXAS.includes(i.cat)),vr=M.todos.filter(i=>!FIXAS.includes(i.cat)),tfx=tot(fx),tvr=tot(vr);
-  const fxCat=soma(fx,'cat'),faltam=FIXAS_CASA.filter(c=>!fxCat.some(([k])=>k===c));
+  const fxCat=soma(fx,'cat'),faltam=FIXAS.filter(c=>!fxCat.some(([k])=>k===c));
   const blocoFixas=`<div class="card"><h2>Contas fixas e variáveis</h2>
     <div class="pilha" role="img" aria-label="Divisão entre contas fixas e variáveis">${tfx?`<i class="p1" style="width:${pct(tfx)}%"></i>`:''}${tvr?`<i class="p2" style="width:${pct(tvr)}%"></i>`:''}</div>
     <div style="margin-top:6px"><div class="linha"><span><b class="ponto p1"></b>&nbsp; Contas fixas</span><span class="num"><b>${R(tfx)}</b> <span class="dica">${Math.round(pct(tfx))}%</span></span></div>
@@ -769,11 +1128,12 @@ async function painel(){
   <h2 style="font-size:1.05rem;margin:8px 0 -4px">Detalhe do mês</h2>
   ${PARTES.map(p=>`<details class="bloco" id="bloco-${p[0]}"><summary><b class="ponto ${p[3]}"></b><b>${p[1]}</b><span class="num">${R(tot(p[2]))}</span><span class="q">${qtd(p[2].length)}</span></summary><div class="corpo">${lista(p[2],p[0]!=='vista')}</div></details>`).join('')}`;
   s.querySelectorAll('[data-abre]').forEach(b=>b.onclick=()=>{const el=$('bloco-'+b.dataset.abre);el.open=true;el.scrollIntoView({behavior:'smooth',block:'start'})});
+  s.querySelectorAll('[data-ed]').forEach(b=>b.onclick=()=>abrirEditar(chaves[+b.dataset.ed]));
   s.querySelectorAll('[data-x]').forEach(b=>b.onclick=async()=>{const it=chaves[+b.dataset.x];
     if(!b.classList.contains('conf')){s.querySelectorAll('.x.conf').forEach(o=>{o.classList.remove('conf');o.innerHTML=o.dataset.ic});b.dataset.ic=b.innerHTML;b.classList.add('conf');
       b.textContent=it.n>1?`Excluir compra (${it.n}x)`:'Excluir';setTimeout(()=>{if(b.isConnected&&b.classList.contains('conf')){b.classList.remove('conf');b.innerHTML=b.dataset.ic}},4000);return}
     b.disabled=true;b.textContent='Excluindo…';
-    try{await excluirLanc(it.chave);toast(it.n>1?'Compra e parcelas excluídas.':'Lançamento excluído.');painel()}
+    try{await excluirLanc(it.chave);toast(it.n>1?'Compra e parcelas excluídas.':'Lançamento excluído.');atualizarDepoisDeMudar()}
     catch(e){toast(e.message);b.disabled=false;b.classList.remove('conf');b.innerHTML=b.dataset.ic}});
 }
 
@@ -804,15 +1164,12 @@ async function invApiLocal(d){
 // na planilha: a senha é conferida pelo Apps Script
 async function invApi(d){
   d.acao='invest';
-  if(!MODO_TESTE){let r;
-    try{r=await fetch(URL_PLANILHA,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(d)})}
-    catch(e){if(!PODE_TESTE)return{erro:'rede'};ativarTeste();return invApiLocal(d)}
-    try{const j=await r.json();if(j&&(j.ok||j.erro||'temSenha' in j))return j}catch(e){}
-    return{erro:'script'};
-  }
+  if(!MODO_TESTE){
+    try{const j=await api(d);if(j.ok||j.erro||'temSenha' in j)return j;return{erro:'script'}}
+    catch(e){if(e.rede&&PODE_TESTE){ativarTeste();return invApiLocal(d)}return{erro:e.rede?'rede':e.token?'sessao':'script'}}}
   return invApiLocal(d);
 }
-const MSG_ERRO={senha:'Senha incorreta.',bloqueado:'Muitas tentativas erradas.',script:'Falta atualizar o Apps Script da planilha para usar Investimentos. O passo a passo está no chat.',rede:'Sem conexão com a planilha. Confira a internet e tente de novo.',senha_curta:'A senha precisa ter pelo menos 4 caracteres.',ja_tem_senha:'Já existe uma senha. Digite a senha para entrar.'};
+const MSG_ERRO={sessao:'Digite a senha do app para continuar.',senha:'Senha incorreta.',bloqueado:'Muitas tentativas erradas.',script:'Falta atualizar o Apps Script da planilha para usar Investimentos. O passo a passo está no chat.',rede:'Sem conexão com a planilha. Confira a internet e tente de novo.',senha_curta:'A senha precisa ter pelo menos 4 caracteres.',ja_tem_senha:'Já existe uma senha. Digite a senha para entrar.'};
 const msgErro=j=>(MSG_ERRO[j.erro]||'Não deu certo. Tente de novo.')+(j.erro==='senha'&&j.restam!=null?` Restam ${j.restam} tentativas.`:'')+(j.erro==='bloqueado'?` Tente de novo em ${j.minutos} minutos.`:'');
 
 // ---- cálculos ----
@@ -949,7 +1306,7 @@ limparFormInv();
 
 $('limpar').onclick=()=>{memLocal={lanc:[],parc:[]};gravarLocal();toast('Dados de teste apagados.');fecharAjustes();if(!document.querySelector('[data-sec="2"]').hidden)painel()};
 ver();
-carregar().catch(()=>{}).finally(()=>{if(!$('ajustes').hidden)atualizarAjustes()}); // descobre se a planilha está acessível daqui
+iniciarApp();
 if('serviceWorker' in navigator&&!PODE_TESTE)window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
 </script>
 </body>
