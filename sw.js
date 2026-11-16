@@ -1,6 +1,6 @@
 // Gestão de Gastos — guarda a tela do app no celular para abrir rápido.
 // Os dados (planilha e Banco Central) sempre vêm da internet, nunca do cache.
-const VERSAO = 'gastos-v19';
+const VERSAO = 'gastos-v20';
 const APP = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png', './icon-maskable-512.png', './apple-touch-icon.png', './favicon.png'];
 const EXTERNOS = [
   'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js',

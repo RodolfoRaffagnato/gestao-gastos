@@ -572,7 +572,7 @@ button.card.ir>span{display:grid;gap:3px}button.card.ir svg{color:var(--muted-2)
     <button class="btn sec peq" id="ajLimparRegras" type="button">Apagar</button></div>
   </div>
   <div class="ajuste">
-    <div class="lin"><div><h3>Versão</h3><p class="dica">Gestão de Gastos 2.8</p></div></div>
+    <div class="lin"><div><h3>Versão</h3><p class="dica">Gestão de Gastos 2.9</p></div></div>
   </div>
   </div>
   <div id="ajCats" hidden>
@@ -1276,7 +1276,8 @@ function resumoMes(d,mes){
   const pagoCartao=Object.entries(fat).filter(([c])=>paga(c)).reduce((x,[,v])=>x+v,0),abertoCartao=Object.entries(fat).filter(([c])=>!paga(c)).reduce((x,[,v])=>x+v,0);
   // já pago e falta pagar: o dinheiro que sai no mês (contas fixas + faturas dos cartões que vencem nele)
   const jaPago=r2(tot(M.vista)+pagoCartao),falta=r2(tot(M.previstas)+abertoCartao),E=entradasDoMes(d,mes);
-  const proxMes=r2(saidas-tot(M.vista));
+  // a pagar no mês seguinte: todas as contas fixas (pagas ou não) + cartão (1ª parcela das compras do mês) + parcelas antigas
+  const ehFixa=i=>FIXAS.includes(i.cat),proxMes=r2(tot(M.todos.filter(ehFixa))+tot(M.novas.filter(i=>!ehFixa(i)))+tot(M.antigas.filter(i=>!ehFixa(i))));
   return{M,E,saidas,jaPago,falta,proxMes,entradas:r2(E.total),sobra:r2(E.total-saidas),faturaPaga:paga};
 }
 
@@ -1302,7 +1303,7 @@ async function inicio(){
     <div class="kpis2">
       <div class="k"><div class="sub">Gastos do mês</div><div class="v" id="kGastos"><small>R$</small>${R(r.saidas).replace(/^R\$\s?/,'')}</div><div class="r">tudo o que você gastou em ${nomeMes(mes)}</div></div>
       <div class="k"><div class="sub">Falta pagar</div><div class="v" id="kFalta"><small>R$</small>${R(r.falta).replace(/^R\$\s?/,'')}</div><div class="r">contas e faturas que vencem no mês · já pago ${R(r.jaPago)}</div></div>
-      <div class="k largo"><div><div class="sub">A pagar em ${nomeMes(somaMes(mes,1))}</div><div class="r">gastos do mês menos o que já saiu em dinheiro, Pix e débito</div></div><div class="v" id="kProx"><small>R$</small>${R(r.proxMes).replace(/^R\$\s?/,'')}</div></div>
+      <div class="k largo"><div><div class="sub">A pagar em ${nomeMes(somaMes(mes,1))}</div><div class="r">contas fixas + cartão (1ª parcela) + parcelas antigas</div></div><div class="v" id="kProx"><small>R$</small>${R(r.proxMes).replace(/^R\$\s?/,'')}</div></div>
     </div>
     <div class="compos">${comp.map(([n,v,c])=>`<div class="linha"><span><b class="ponto ${c}"></b>&nbsp; ${n}</span><span class="num">${R(v)}</span></div>`).join('')}
       <div class="linha soma"><span>Gastos do mês</span><span class="num">${R(r.saidas)}</span></div></div>
@@ -1560,7 +1561,7 @@ async function painel(){
   <div class="card resumo">
     <div class="total"><div><div class="sub">Gastos de ${nomeMes(mes)}</div><div class="grande">${R(t)}</div></div>
       ${ta?`<div class="sub">Mês anterior ${R(ta)} <span class="pill ${dif>0?'sobe':'desce'}">${dif>0?'+':''}${dif}%</span></div>`:''}</div>
-    <div class="pagobar">${RM.entradas?`<div class="linha"><span>Entradas do mês</span><span class="num">${R(RM.entradas)}</span></div>`:''}<div class="linha"><span>Gastos do mês</span><span class="num">${R(t)}</span></div><div class="linha"><span>Contas e faturas já pagas</span><span class="num" style="color:var(--good)">${R(jaPago)}</span></div><div class="linha soma"><span>Falta pagar</span><span class="num">${R(falta)}</span></div><div class="linha soma"><span>A pagar em ${nomeMes(somaMes(mes,1))}</span><span class="num" id="pProx">${R(RM.proxMes)}</span></div><p class="dica" style="margin:2px 0 0">Gastos do mês: tudo o que você comprou no mês (no cartão, só a 1ª parcela), as contas fixas e as parcelas antigas que caem nele. Falta pagar: contas fixas e faturas dos cartões que vencem no mês e ainda não foram pagas. A pagar no mês seguinte: gastos do mês menos o que já saiu em dinheiro, Pix e débito.</p>${RM.entradas?`<div class="linha soma"><span>${RM.sobra<0?'Falta no mês':'Sobra do mês'}</span><span class="num ${RM.sobra<0?'neg':'pos'}">${R(Math.abs(RM.sobra))}</span></div>`:''}</div>
+    <div class="pagobar">${RM.entradas?`<div class="linha"><span>Entradas do mês</span><span class="num">${R(RM.entradas)}</span></div>`:''}<div class="linha"><span>Gastos do mês</span><span class="num">${R(t)}</span></div><div class="linha"><span>Contas e faturas já pagas</span><span class="num" style="color:var(--good)">${R(jaPago)}</span></div><div class="linha soma"><span>Falta pagar</span><span class="num">${R(falta)}</span></div><div class="linha soma"><span>A pagar em ${nomeMes(somaMes(mes,1))}</span><span class="num" id="pProx">${R(RM.proxMes)}</span></div><p class="dica" style="margin:2px 0 0">Gastos do mês: tudo o que você comprou no mês (no cartão, só a 1ª parcela), as contas fixas e as parcelas antigas que caem nele. Falta pagar: contas fixas e faturas dos cartões que vencem no mês e ainda não foram pagas. A pagar no mês seguinte: todas as contas fixas (pagas ou não) + compras do mês no cartão (1ª parcela) + parcelas antigas.</p>${RM.entradas?`<div class="linha soma"><span>${RM.sobra<0?'Falta no mês':'Sobra do mês'}</span><span class="num ${RM.sobra<0?'neg':'pos'}">${R(Math.abs(RM.sobra))}</span></div>`:''}</div>
     <div class="pilha" role="img" aria-label="Divisão do total do mês">${PARTES.filter(p=>tot(p[2])>0).map(p=>`<i class="${p[3]}" style="width:${pct(tot(p[2]))}%"></i>`).join('')}</div>
     <div>${PARTES.map(p=>`<button type="button" class="parte" data-abre="${p[0]}"><b class="ponto ${p[3]}"></b><span class="rot">${p[1]}</span><span class="num">${R(tot(p[2]))}</span><span class="q">${p[0]==='previstas'?`${p[2].length} ${p[2].length===1?'conta prevista':'contas previstas'}, ainda não pagas`:qtd(p[2].length)}</span><span class="ver">ver lista</span></button>`).join('')}
     ${M.compras.length?`<button type="button" class="parte extra" data-abre="compras"><b class="ponto p5"></b><span class="rot">Compras no cartão feitas em ${nomeMes(mes)}</span><span class="num">${R(tot(M.compras))}</span><span class="q">${qtd(M.compras.length)} · contam no mês da fatura, não somam aqui</span><span class="ver">ver lista</span></button>`:''}</div>
