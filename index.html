@@ -571,7 +571,7 @@ button.card.ir>span{display:grid;gap:3px}button.card.ir svg{color:var(--muted-2)
     <button class="btn sec peq" id="ajLimparRegras" type="button">Apagar</button></div>
   </div>
   <div class="ajuste">
-    <div class="lin"><div><h3>Versão</h3><p class="dica">Gestão de Gastos 2.6</p></div></div>
+    <div class="lin"><div><h3>Versão</h3><p class="dica">Gestão de Gastos 2.7</p></div></div>
   </div>
   </div>
   <div id="ajCats" hidden>
@@ -1270,8 +1270,11 @@ function entradasDoMes(d,mes){
 // um cálculo só para "já pago" e "falta pagar" (usado no Início, no Painel e na aba Contas)
 function resumoMes(d,mes){
   const M=doMesTudo(d,mes),tot=l=>l.reduce((x,i)=>x+i.valor,0),pg=MODO_TESTE?pagosLocal():PAGOS,paga=c=>!!pg[`${mes}|cartao|${c}`];
-  const r2=v=>Math.round(v*100)/100,saidas=r2(tot(M.todos)),pagoCartao=[...M.novas,...M.antigas].filter(i=>paga(i.cartao)).reduce((x,i)=>x+i.valor,0);
-  const jaPago=r2(tot(M.vista)+pagoCartao),falta=Math.max(0,r2(saidas-jaPago)),E=entradasDoMes(d,mes);
+  const r2=v=>Math.round(v*100)/100,saidas=r2(tot(M.todos)),fat={};
+  d.parc.forEach(r=>{if(String(r[5]).slice(0,7)===mes){const c=r[2]||'Cartão';fat[c]=(fat[c]||0)+(+r[4]||0)}});
+  const pagoCartao=Object.entries(fat).filter(([c])=>paga(c)).reduce((x,[,v])=>x+v,0),abertoCartao=Object.entries(fat).filter(([c])=>!paga(c)).reduce((x,[,v])=>x+v,0);
+  // já pago e falta pagar: o dinheiro que sai no mês (contas fixas + faturas dos cartões que vencem nele)
+  const jaPago=r2(tot(M.vista)+pagoCartao),falta=r2(tot(M.previstas)+abertoCartao),E=entradasDoMes(d,mes);
   return{M,E,saidas,jaPago,falta,entradas:r2(E.total),sobra:r2(E.total-saidas),faturaPaga:paga};
 }
 
@@ -1290,13 +1293,13 @@ async function inicio(){
   const mx=Math.max(1,...meses.map(m=>Math.max(m.saidas,m.entradas)));
   // gastos do mês separados sem contar nada duas vezes: contas fixas primeiro, o resto pela forma de pagamento
   const M=r.M,tot=l=>l.reduce((x,i)=>x+i.valor,0),fixa=i=>FIXAS.includes(i.cat),nf=l=>l.filter(i=>!fixa(i));
-  const comp=[['Contas fixas',tot(M.todos.filter(fixa)),'p4'],['Dinheiro, Pix e débito',tot(nf(M.vista)),'p1'],['Cartão: compras desta fatura',tot(nf(M.novas)),'p2'],['Cartão: parcelas que continuam',tot(nf(M.antigas)),'p3']];
+  const comp=[['Contas fixas (pagas ou não)',tot(M.todos.filter(fixa)),'p4'],['Dinheiro, Pix e débito',tot(nf(M.vista)),'p1'],['Cartão: compras do mês (1ª parcela)',tot(nf(M.novas)),'p2'],['Cartão: parcelas de compras antigas',tot(nf(M.antigas)),'p3']];
   const sem=['dom','seg','ter','qua','qui','sex','sáb'];
   s.innerHTML=`
   <div class="card resumo">
     <div class="kpis2">
-      <div class="k"><div class="sub">Gastos do mês</div><div class="v" id="kGastos"><small>R$</small>${R(r.saidas).replace(/^R\$\s?/,'')}</div><div class="r">tudo o que sai em ${nomeMes(mes)}</div></div>
-      <div class="k"><div class="sub">Falta pagar</div><div class="v" id="kFalta"><small>R$</small>${R(r.falta).replace(/^R\$\s?/,'')}</div><div class="r">já pago ${R(r.jaPago)}</div></div>
+      <div class="k"><div class="sub">Gastos do mês</div><div class="v" id="kGastos"><small>R$</small>${R(r.saidas).replace(/^R\$\s?/,'')}</div><div class="r">tudo o que você gastou em ${nomeMes(mes)}</div></div>
+      <div class="k"><div class="sub">Falta pagar</div><div class="v" id="kFalta"><small>R$</small>${R(r.falta).replace(/^R\$\s?/,'')}</div><div class="r">contas e faturas que vencem no mês · já pago ${R(r.jaPago)}</div></div>
     </div>
     <div class="compos">${comp.map(([n,v,c])=>`<div class="linha"><span><b class="ponto ${c}"></b>&nbsp; ${n}</span><span class="num">${R(v)}</span></div>`).join('')}
       <div class="linha soma"><span>Gastos do mês</span><span class="num">${R(r.saidas)}</span></div></div>
@@ -1316,10 +1319,10 @@ async function inicio(){
   </div>
 
   <div class="card"><h2>Próximos 3 meses</h2>
-    <p class="dica">O que já está previsto: parcelas dos cartões e contas fixas${temEntradas?', e as entradas fixas':''}. Compras novas ainda vão somar.</p>
+    <p class="dica">O que já está previsto: contas fixas e parcelas de compras feitas antes${temEntradas?', e as entradas fixas':''}. Compras novas ainda vão somar.</p>
     <div class="meses3">${meses.map(m=>`<div class="m3">
       <div class="m3cab"><b>${nomeMes(m.m)}</b>${temEntradas?`<span class="${m.sobra<0?'neg':'pos'}">${m.sobra<0?'Falta':'Sobra'} ${R(Math.abs(m.sobra))}</span>`:''}</div>
-      <div class="m3barra"><span>Saídas</span><i class="sai" style="width:${m.saidas/mx*100}%"></i><b>${R(m.saidas)}</b></div>
+      <div class="m3barra"><span>Gastos</span><i class="sai" style="width:${m.saidas/mx*100}%"></i><b>${R(m.saidas)}</b></div>
       ${temEntradas?`<div class="m3barra"><span>Entradas</span><i class="ent" style="width:${m.entradas/mx*100}%"></i><b>${R(m.entradas)}</b></div>`:''}
     </div>`).join('')}</div>
   </div>
@@ -1370,7 +1373,7 @@ async function salvarManual(){
   if(!l.descricao){if(FIXAS.includes(l.categoria))l.descricao=l.categoria;else{st.textContent='Digite onde foi a compra. Só as contas fixas podem ficar sem.';$('desc').focus();return}}
   if(l.forma==='Crédito'){l.cartao=$('cartao').value;l.tipo=tipo();const n=l.tipo==='Parcelado'?Math.min(24,Math.max(2,parseInt($('vezes').value)||2)):1;parcelar(l,mesDaFatura(l.cartao,l.data),1,n,l.valor/n,l.valor)}
   salvando=true;b.disabled=true;b.textContent='Salvando…';
-  try{const res=await enviar([l]);ultimoSalvo=l;lembrarUltimo(l);ultimosDados=null;if(res.offline){st.textContent='Sem internet: '+l.descricao+', '+R(l.valor)+' ficou guardado no aparelho e vai para a planilha quando a conexão voltar.';toast('Guardado no aparelho.');$('desc').value='';$('valor').value='';catManual=false;ver();return}const onde=l.forma==='Crédito'?' Conta em '+nomeMes(l.parcelasLista[0].mes)+', mês da fatura.':' Já conta em '+nomeMes(l.data.slice(0,7))+'.';const msg=(MODO_TESTE?'Salvo no modo de teste: ':'Salvo na planilha: ')+l.descricao+', '+R(l.valor)+'.'+onde;st.textContent=msg;toast(MODO_TESTE?'Salvo no modo de teste.':'Salvo na planilha!');$('desc').value='';$('valor').value='';catManual=false;ver();descOpcional()}
+  try{const res=await enviar([l]);ultimoSalvo=l;lembrarUltimo(l);ultimosDados=null;if(res.offline){st.textContent='Sem internet: '+l.descricao+', '+R(l.valor)+' ficou guardado no aparelho e vai para a planilha quando a conexão voltar.';toast('Guardado no aparelho.');$('desc').value='';$('valor').value='';catManual=false;ver();return}const onde=l.forma==='Crédito'?(l.parcelasLista.length>1?' A 1ª parcela já conta nos gastos de ':' Já conta nos gastos de ')+nomeMes(l.data.slice(0,7))+'; a fatura vem em '+nomeMes(l.parcelasLista[0].mes)+'.':' Já conta em '+nomeMes(l.data.slice(0,7))+'.';const msg=(MODO_TESTE?'Salvo no modo de teste: ':'Salvo na planilha: ')+l.descricao+', '+R(l.valor)+'.'+onde;st.textContent=msg;toast(MODO_TESTE?'Salvo no modo de teste.':'Salvo na planilha!');$('desc').value='';$('valor').value='';catManual=false;ver();descOpcional()}
   catch(err){st.textContent='Não consegui salvar. '+(err.message||'Confira a internet e tente de novo.')}
   finally{salvando=false;b.disabled=false;b.textContent='Salvar lançamento'}
 }
@@ -1492,22 +1495,18 @@ function doMesTudo(d,mes){
   d.lanc.forEach(r=>{catDe[r[1]+'|'+r[5]]=r[2];catDe[r[1]]=catDe[r[1]]||r[2]});
   const vista=[],novas=[],antigas=[];
   d.lanc.forEach(r=>{if(r[4]!=='Crédito'&&r[4]!=='Entrada'&&dia(r).slice(0,7)===mes)vista.push({data:dia(r),desc:r[1],cat:r[2],valor:+r[3]||0,onde:r[4],info:r[4],valorTotal:+r[3]||0,chave:{data:dia(r),descricao:r[1],cartao:''}})});
-  d.parc.forEach(r=>{if(String(r[5]).slice(0,7)!==mes)return;const[k,n]=parcN(r[3]);
-    const it={data:dia(r),desc:r[1],cat:catDe[r[1]+'|'+r[2]]||catDe[r[1]]||'Outros',valor:+r[4]||0,onde:r[2],cartao:r[2],
-      info:n>1?`parcela ${k} de ${n}`:'à vista no cartão',n,chave:{data:dia(r),descricao:r[1],cartao:r[2]}};
-    (k>1?antigas:novas).push(it)});
+  // cartão: a 1ª parcela conta no mês da compra; as parcelas seguintes, no mês da fatura em que caem
+  d.parc.forEach(r=>{const[k,n]=parcN(r[3]),fat=String(r[5]).slice(0,7),nova=k<=1&&dia(r).slice(0,7)===mes,antiga=k>1&&fat===mes;if(!nova&&!antiga)return;
+    const it={data:dia(r),desc:r[1],cat:catDe[r[1]+'|'+r[2]]||catDe[r[1]]||'Outros',valor:+r[4]||0,onde:r[2],cartao:r[2],fat,
+      info:nova?(n>1?`1ª de ${n} parcelas · fatura de ${nomeMes(fat)}`:`à vista no cartão · fatura de ${nomeMes(fat)}`):`parcela ${k} de ${n}`,n,chave:{data:dia(r),descricao:r[1],cartao:r[2]}};
+    (nova?novas:antigas).push(it)});
   // contas fixas com valor previsto se repetem todo mês até serem pagas (só do mês atual em diante)
   const previstas=[];
   if(mes>=mesAtual){const pg=MODO_TESTE?pagosLocal():PAGOS,ja=new Set([...vista,...novas,...antigas].map(i=>i.cat));
     const[aa,mm]=mes.split('-').map(Number),ult=new Date(aa,mm,0).getDate();
     CFG.categorias.filter(c=>c.tipo==='Fixa'&&+c.valor>0&&!ja.has(c.nome)&&!pg[`${mes}|conta|${c.nome}`]).forEach(c=>{const dd=c.venc?Math.min(+c.venc,ult):1;
       previstas.push({data:`${mes}-${String(dd).padStart(2,'0')}`,desc:c.nome,cat:c.nome,valor:+c.valor,onde:'Prevista',prevista:true,info:c.venc?`prevista, vence dia ${c.venc}`:'prevista'})})}
-  // compras no cartão feitas neste mês (aparecem aqui para consulta; o valor conta no mês da fatura)
-  const primeiraFatura={};d.parc.forEach(r=>{const k=dia(r)+'|'+r[1]+'|'+r[2],m=String(r[5]).slice(0,7);if(!primeiraFatura[k]||m<primeiraFatura[k])primeiraFatura[k]=m});
-  const compras=[];d.lanc.forEach(r=>{if(r[4]!=='Crédito'||dia(r).slice(0,7)!==mes)return;const f=primeiraFatura[dia(r)+'|'+r[1]+'|'+r[5]];
-    const n=+((String(r[7]).match(/de\s*(\d+)/)||String(r[7]).match(/(\d+)\s*x/)||[])[1])||1;
-    compras.push({data:dia(r),desc:r[1],cat:r[2],valor:+r[3]||0,valorTotal:+r[3]||0,onde:r[5],cartao:r[5],n,
-      info:`${r[6]==='Parcelado'&&r[7]?'parcelado '+r[7]:'à vista'}${f?`, entra na fatura de ${nomeMes(f)}`:''}`,chave:{data:dia(r),descricao:r[1],cartao:r[5]}})});
+  const compras=[];
   return {vista,novas,antigas,previstas,compras,todos:[...vista,...novas,...antigas,...previstas]};
 }
 async function painel(){
@@ -1525,11 +1524,11 @@ async function painel(){
   const barras=(l,comp)=>{const mx=l[0]?.[1]||1;return l.slice(0,5).map(([k,v],i)=>{
     let tag='';if(comp&&ta){const a=antCat[k];tag=a?(v>a?`<span class="pill sobe">+${R(v-a)}</span>`:`<span class="pill desce">−${R(a-v)}</span>`):'<span class="pill sobe">novo</span>'}
     return`<div class="barra${i===0?' top':''}"><span class="nome">${esc(k)} ${tag}</span><span class="num">${R(v)}</span><span class="trilho"><i style="width:${Math.max(3,v/mx*100)}%"></i></span></div>`}).join('')};
-  const PARTES=[['vista','Dinheiro, Pix e débito',M.vista,'p1'],['novas','Cartão: compras desta fatura',M.novas,'p2'],['antigas','Cartão: parcelas que continuam',M.antigas,'p3'],['previstas','Contas fixas a pagar',M.previstas,'p4']].filter(p=>p[0]!=='previstas'||p[2].length);
+  const PARTES=[['vista','Dinheiro, Pix e débito',M.vista,'p1'],['novas','Cartão: compras do mês (1ª parcela)',M.novas,'p2'],['antigas','Cartão: parcelas de compras antigas',M.antigas,'p3'],['previstas','Contas fixas a pagar',M.previstas,'p4']].filter(p=>p[0]!=='previstas'||p[2].length);
   const pct=v=>t?v/t*100:0,qtd=n=>n+(n===1?' lançamento':' lançamentos');
   // cartões
-  const pc={};d.parc.forEach(r=>{const c=r[2]||'Cartão',m=String(r[5]).slice(0,7),v=+r[4]||0;pc[c]=pc[c]||{novas:0,antigas:0,depois:0};if(m>mes)pc[c].depois+=v});
-  M.novas.forEach(i=>{pc[i.cartao].novas+=i.valor});M.antigas.forEach(i=>{pc[i.cartao].antigas+=i.valor});
+  const pc={},pN=x=>+((String(x).match(/(\d+)\s*(?:de|\/)/)||[])[1]||1);d.parc.forEach(r=>{const c=r[2]||'Cartão',m=String(r[5]).slice(0,7),v=+r[4]||0;pc[c]=pc[c]||{novas:0,antigas:0,depois:0};
+    if(m>mes)pc[c].depois+=v;else if(m===mes)pc[c][pN(r[3])>1?'antigas':'novas']+=v});
   const cartoes=Object.entries(pc).filter(([,o])=>o.novas+o.antigas+o.depois>0).sort((a,b)=>(b[1].novas+b[1].antigas)-(a[1].novas+a[1].antigas));
   const depois=cartoes.reduce((x,[,o])=>x+o.depois,0);
   // listas
@@ -1556,9 +1555,9 @@ async function painel(){
 
   s.innerHTML=`
   <div class="card resumo">
-    <div class="total"><div><div class="sub">Falta pagar em ${nomeMes(mes)}</div><div class="grande">${R(falta)}</div></div>
+    <div class="total"><div><div class="sub">Gastos de ${nomeMes(mes)}</div><div class="grande">${R(t)}</div></div>
       ${ta?`<div class="sub">Mês anterior ${R(ta)} <span class="pill ${dif>0?'sobe':'desce'}">${dif>0?'+':''}${dif}%</span></div>`:''}</div>
-    <div class="pagobar">${RM.entradas?`<div class="linha"><span>Entradas do mês</span><span class="num">${R(RM.entradas)}</span></div>`:''}<div class="linha"><span>Sai do bolso em ${nomeMes(mes)}</span><span class="num">${R(t)}</span></div><div class="linha"><span>Já pago</span><span class="num" style="color:var(--good)">${R(jaPago)}</span></div><div class="linha soma"><span>Falta pagar</span><span class="num">${R(falta)}</span></div>${RM.entradas?`<div class="linha soma"><span>${RM.sobra<0?'Falta no mês':'Sobra do mês'}</span><span class="num ${RM.sobra<0?'neg':'pos'}">${R(Math.abs(RM.sobra))}</span></div>`:''}</div>
+    <div class="pagobar">${RM.entradas?`<div class="linha"><span>Entradas do mês</span><span class="num">${R(RM.entradas)}</span></div>`:''}<div class="linha"><span>Gastos do mês</span><span class="num">${R(t)}</span></div><div class="linha"><span>Contas e faturas já pagas</span><span class="num" style="color:var(--good)">${R(jaPago)}</span></div><div class="linha soma"><span>Falta pagar</span><span class="num">${R(falta)}</span></div><p class="dica" style="margin:2px 0 0">Gastos do mês: tudo o que você comprou no mês (no cartão, só a 1ª parcela), as contas fixas e as parcelas antigas que caem nele. Falta pagar: contas fixas e faturas dos cartões que vencem no mês e ainda não foram pagas.</p>${RM.entradas?`<div class="linha soma"><span>${RM.sobra<0?'Falta no mês':'Sobra do mês'}</span><span class="num ${RM.sobra<0?'neg':'pos'}">${R(Math.abs(RM.sobra))}</span></div>`:''}</div>
     <div class="pilha" role="img" aria-label="Divisão do total do mês">${PARTES.filter(p=>tot(p[2])>0).map(p=>`<i class="${p[3]}" style="width:${pct(tot(p[2]))}%"></i>`).join('')}</div>
     <div>${PARTES.map(p=>`<button type="button" class="parte" data-abre="${p[0]}"><b class="ponto ${p[3]}"></b><span class="rot">${p[1]}</span><span class="num">${R(tot(p[2]))}</span><span class="q">${p[0]==='previstas'?`${p[2].length} ${p[2].length===1?'conta prevista':'contas previstas'}, ainda não pagas`:qtd(p[2].length)}</span><span class="ver">ver lista</span></button>`).join('')}
     ${M.compras.length?`<button type="button" class="parte extra" data-abre="compras"><b class="ponto p5"></b><span class="rot">Compras no cartão feitas em ${nomeMes(mes)}</span><span class="num">${R(tot(M.compras))}</span><span class="q">${qtd(M.compras.length)} · contam no mês da fatura, não somam aqui</span><span class="ver">ver lista</span></button>`:''}</div>
