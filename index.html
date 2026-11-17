@@ -608,7 +608,7 @@ button.lanc:active,button.linha:active,button.barra:active,.lanc.acao:active{bac
     <button class="btn sec peq" id="ajLimparRegras" type="button">Apagar</button></div>
   </div>
   <div class="ajuste">
-    <div class="lin"><div><h3>Versão</h3><p class="dica">Gestão de Gastos 4.2</p></div></div>
+    <div class="lin"><div><h3>Versão</h3><p class="dica">Gestão de Gastos 4.3</p></div></div>
   </div>
   </div>
   <div id="ajCats" hidden>
@@ -927,7 +927,14 @@ async function fbApi(d){
   }
 }
 // primeira vez da conta: grava as categorias e cartões padrão
-async function fbPrimeiraVez(){await fbOuvir();if(!(FBS.cfg.categorias||[]).length)fbConfig({categorias:CFG.categorias,cartoes:CFG.cartoes})}
+// conta nova começa com categorias e cartões genéricos (cada pessoa ajusta depois em Ajustes)
+const PADRAO_NOVA={categorias:[...['Aluguel','Condomínio','Luz','Água','Gás','Internet','Celular','Escola','Plano de saúde','Assinaturas','Seguros'].map(nome=>({nome,tipo:'Fixa',venc:'',valor:''})),
+  ...['Mercado','Combustível','Casa','Restaurante','Saúde','Transporte','Lazer','Compras','Tarifas','Outros'].map(nome=>({nome,tipo:'Variável',venc:'',valor:''})),
+  ...['Salário','Outras entradas'].map(nome=>({nome,tipo:'Entrada',venc:'',valor:''}))],
+  cartoes:['Nubank','Itaú','Bradesco','Santander','Mercado Pago','Inter'].map(nome=>({nome,fech:'',venc:''}))};
+async function fbPrimeiraVez(){await fbOuvir();if(!(FBS.cfg.categorias||[]).length){fbConfig(PADRAO_NOVA);lerConfigServidor(fbDadosConfig())}}
+// "Trazer dados da planilha antiga" só aparece abrindo o app com #planilha no fim do endereço
+const MOSTRAR_PLANILHA=location.hash==='#planilha';
 const MSG_FB={'auth/invalid-credential':'E-mail ou senha incorretos.','auth/wrong-password':'E-mail ou senha incorretos.','auth/user-not-found':'Não existe conta com esse e-mail. Toque em "Criar conta".',
   'auth/invalid-email':'Esse e-mail não parece certo.','auth/email-already-in-use':'Já existe conta com esse e-mail. Toque em "Já tenho conta".','auth/weak-password':'A senha precisa ter pelo menos 6 caracteres.',
   'auth/too-many-requests':'Muitas tentativas. Espere alguns minutos e tente de novo.','auth/network-request-failed':'Sem internet. Para entrar pela primeira vez neste aparelho, conecte-se.','auth/missing-password':'Digite a senha.'};
@@ -1228,7 +1235,7 @@ function atualizarAjustes(){
   const nf=contarFila();
   $('ajConexao').textContent=(nf?`${nf} ${nf===1?'lançamento esperando':'lançamentos esperando'} internet. `:'')+(MODO_TESTE?'Modo de teste: os dados ficam só neste aparelho.':estadoConexao==='ok'?'Conectada. Tudo o que você salva vai para a sua planilha do Google.':estadoConexao==='erro'?'Sem conexão com a planilha agora. O que você lançar fica guardado no aparelho.':'Verificando conexão…');
   $('limpar').hidden=!MODO_TESTE;
-  if(fbOn()){$('ajPlanTitulo').textContent='Sua conta';$('ajConexao').textContent=(fbAuth.currentUser?`Conectado como ${fbAuth.currentUser.email}. `:'')+'Os dados ficam no banco do app, guardados também neste aparelho para abrir rápido e funcionar sem internet.';$('migrarBox').hidden=!URL_PLANILHA}
+  if(fbOn()){$('ajPlanTitulo').textContent='Sua conta';$('ajConexao').textContent=(fbAuth.currentUser?`Conectado como ${fbAuth.currentUser.email}. `:'')+'Os dados ficam no banco do app, guardados também neste aparelho para abrir rápido e funcionar sem internet.';$('migrarBox').hidden=!(URL_PLANILHA&&MOSTRAR_PLANILHA)}
   {const ne=CFG.categorias.filter(c=>c.tipo==='Entrada').length;$('ajCatsInfo').textContent=`${FIXAS.length} contas fixas, ${VARIAVEIS.length} variáveis${ne?` e ${ne} ${ne===1?'entrada':'entradas'}`:''}`}
   $('ajCartoesInfo').textContent=`${CARTOES.length} ${CARTOES.length===1?'cartão':'cartões'}: ${CARTOES.join(', ')}`;
   atualizarInstalar();
