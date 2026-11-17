@@ -1,16 +1,17 @@
-<!DOCTYPE html>
-<html lang="pt-BR"><head><meta charset="utf-8">
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#000000">
-<link rel="icon" type="image/png" href="favicon.png">
-<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Gastos">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="Gastos">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="favicon.png" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <title>Gestão de Gastos</title>
-<meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap">
@@ -336,7 +337,14 @@ button.card.ir>span{display:grid;gap:3px}button.card.ir svg{color:var(--muted-2)
 .kpis2 .r{color:var(--muted);font-size:.75rem;margin-top:4px}
 .kpis2 .k.largo{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:12px}.kpis2 .k.largo .v{margin-top:0}
 .compos .linha:first-child{padding-top:0}
+.filtroCartao{display:flex;flex-wrap:wrap;gap:8px;padding:4px 0 10px}
+.filtroCartao button{display:grid;gap:1px;text-align:left;border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:12px;padding:8px 12px;cursor:pointer;min-height:44px}
+.filtroCartao button b{font-weight:600;font-size:.875rem}.filtroCartao button span{font-size:.75rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.filtroCartao button[aria-pressed="true"]{background:var(--fg);border-color:var(--fg);color:var(--inverse)}.filtroCartao button[aria-pressed="true"] span{color:inherit;opacity:.75}
+.fcDica{padding-bottom:6px}
 </style>
+</head>
+<body>
 
 <div class="travaApp" id="travaApp" hidden>
   <div class="trava">
@@ -349,7 +357,6 @@ button.card.ir>span{display:grid;gap:3px}button.card.ir svg{color:var(--muted-2)
     <p class="dica" id="taStatus" role="status" aria-live="polite"></p>
   </div>
 </div>
-</head><body>
 <div class="wrap">
 <header class="appbar">
   <div><h1>Gastos</h1><span class="sub" id="hoje"></span></div>
@@ -572,7 +579,7 @@ button.card.ir>span{display:grid;gap:3px}button.card.ir svg{color:var(--muted-2)
     <button class="btn sec peq" id="ajLimparRegras" type="button">Apagar</button></div>
   </div>
   <div class="ajuste">
-    <div class="lin"><div><h3>Versão</h3><p class="dica">Gestão de Gastos 2.9</p></div></div>
+    <div class="lin"><div><h3>Versão</h3><p class="dica">Gestão de Gastos 3.0</p></div></div>
   </div>
   </div>
   <div id="ajCats" hidden>
@@ -727,7 +734,14 @@ async function enviar(lista){
     catch(e){if(!e.rede)throw e;if(PODE_TESTE)ativarTeste();else{const f=lerFila();f.push(lista);gravarFila(f);return{offline:true}}}}
   const d=lerLocal(),n=linhasDe(lista);d.lanc.push(...n.lanc);d.parc.push(...n.parc);gravarLocal();return{ok:true};
 }
+// os dados ficam guardados na memória por 3 minutos: trocar de aba fica instantâneo.
+// Qualquer mudança feita pelo app (salvar, excluir, editar, pagar) busca de novo na planilha.
+let tDados=0;
 async function carregar(){
+  if(ultimosDados&&Date.now()-tDados<180000)return ultimosDados;
+  const r=await carregarPlanilha();ultimosDados=r;tDados=Date.now();return r;
+}
+async function carregarPlanilha(){
   if(!MODO_TESTE){
     try{const d=await api({acao:'dados'});
       if(!Array.isArray(d.lancamentos)){const err=new Error('Falta atualizar o Apps Script da planilha com o arquivo novo.');err.script=true;throw err}
@@ -822,7 +836,7 @@ async function enviarFila(manual){
   try{while(f.length){await api({lancamentos:f[0]});n+=f[0].length;f.shift();gravarFila(f)}}
   catch(e){if(manual)toast(e.rede?'Ainda sem internet. O app tenta de novo sozinho.':e.message)}
   finally{enviandoFila=false}
-  if(n)toast(`${n} ${n===1?'lançamento enviado':'lançamentos enviados'} para a planilha.`);
+  if(n){ultimosDados=null;toast(`${n} ${n===1?'lançamento enviado':'lançamentos enviados'} para a planilha.`)}
 }
 window.addEventListener('online',()=>enviarFila());
 $('filaEnviar').onclick=()=>enviarFila(true);
@@ -866,7 +880,7 @@ function atualizarDepoisDeMudar(){ultimosDados=null;if($('busca').value.trim().l
 /* ---------- início ---------- */
 const visivel=n=>!document.querySelector(`[data-sec="${n}"]`).hidden;
 function recarregarVisivel(){ultimosDados=null;if(visivel('5'))inicio();if(visivel('2'))painel();if(visivel('4'))contas()}
-function posEntrada(){atualizarAvisoFila();atualizarAlertas();enviarFila();if(visivel('5'))inicio();if(visivel('2'))painel()}
+function posEntrada(){ultimosDados=null;atualizarAvisoFila();atualizarAlertas();enviarFila();if(visivel('5'))inicio();if(visivel('2'))painel()}
 async function iniciarApp(){
   atualizarAvisoFila();
   if(!MODO_TESTE&&!tokenApp()){await prepararTrava();return}
@@ -990,7 +1004,7 @@ async function salvarConfig(novo,renomear={}){
     troca(d.lanc,2,renomear.categorias);troca(d.lanc,5,renomear.cartoes);troca(d.parc,2,renomear.cartoes);gravarLocal()}
   const mudadas={};(renomear.categorias||[]).forEach(([de,para])=>{for(const k in memoria)if(memoria[k]===de){memoria[k]=para;mudadas[k]=para}});enviarRegras(mudadas);
   try{localStorage.setItem('regras',JSON.stringify(memoria))}catch(e){}
-  CFG=novo;aplicarConfig();
+  CFG=novo;aplicarConfig();if(renomear&&((renomear.categorias||[]).length||(renomear.cartoes||[]).length))ultimosDados=null;
 }
 
 // telas dentro dos Ajustes
@@ -1287,6 +1301,9 @@ async function inicio(){
   let d;try{d=await carregar()}catch(e){s.innerHTML=`<p class="card vazio">${esc(e.message)}</p>`;return}
   ultimosDados=d;atualizarAlertas();
   const mes=mesAtual,r=resumoMes(d,mes),temEntradas=CFG.categorias.some(c=>c.tipo==='Entrada'&&+c.valor>0)||r.E.recebidas.length;
+  // últimos 10 gastos, de qualquer forma de pagamento (o mais recente primeiro)
+  const ult10=d.lanc.map((r,ix)=>({r,ix})).filter(({r})=>r[1]!==''&&r[4]!=='Entrada'&&String(r[0]).slice(0,10)<=hojeISO()).sort((a,b)=>String(b.r[0]).slice(0,10).localeCompare(String(a.r[0]).slice(0,10))||b.ix-a.ix).slice(0,10)
+    .map(({r})=>{const n=parseInt(r[7])||1,cred=r[4]==='Crédito';return{data:String(r[0]).slice(0,10),desc:String(r[1]),cat:String(r[2]||'Outros'),valor:+r[3]||0,forma:cred?`${r[5]||'Cartão'}${n>1?` em ${n}x`:''}`:String(r[4]||'')}});
   // próximos 7 dias: contas e faturas a pagar + entradas a receber
   const prox=[...vencimentosDoMes(d,mes),...vencimentosDoMes(d,somaMes(mes,1))].filter(i=>!i.pago&&diasAte(i.data)<=7&&diasAte(i.data)>=-31);
   const receber=[...r.E.previstas,...entradasDoMes(d,somaMes(mes,1)).previstas].filter(i=>diasAte(i.data)<=7&&diasAte(i.data)>=-31);
@@ -1313,6 +1330,10 @@ async function inicio(){
     :`<div class="dica-box"><p class="dica">Cadastre seu salário em <b>Contas › Entradas fixas</b> para ver quanto sobra no mês.</p><button class="btn sec peq" type="button" id="irEntradas">Cadastrar entradas</button></div>`}
   </div>
 
+  <div class="card"><div class="cab2"><h2>Últimos lançamentos</h2><button class="link" type="button" id="verTodos">Ver no painel</button></div>
+    ${ult10.length?ult10.map(u=>`<div class="lanc"><span class="d">${u.data.slice(8,10)}/${u.data.slice(5,7)}</span><span class="n">${esc(u.desc)}</span><span class="num">${R(u.valor)}</span><span class="i">${esc(u.cat)} · ${esc(u.forma)}</span></div>`).join(''):'<p class="dica" style="padding:6px 0">Nenhum gasto lançado ainda.</p>'}
+  </div>
+
   <div class="card"><div class="cab2"><h2>Próximos 7 dias</h2><button class="link" type="button" id="verContas">Ver todas as contas</button></div>
     ${itens7.length?itens7.map((it,ix)=>{const[a,m,dd]=it.data.split('-').map(Number),n=diasAte(it.data),ent=it.tipo==='entrada';
       const txt=ent?(n<0?`era para ${-n} ${n===-1?'dia':'dias'} atrás`:n===0?'hoje':`em ${n} ${n===1?'dia':'dias'}`):situacao(it)[1];
@@ -1332,7 +1353,7 @@ async function inicio(){
   </div>
 
   <button class="card ir" type="button" id="irPainel"><span><b>Para onde vai o dinheiro</b><span class="dica">Maiores gastos, categorias, cartões e o detalhe de cada lançamento</span></span>${'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>'}</button>`;
-  $('verContas').onclick=()=>irPara('4');$('irPainel').onclick=()=>{$('mesPainel').value=mesAtual;irPara('2','5')};
+  $('verContas').onclick=()=>irPara('4');$('verTodos').onclick=()=>{$('mesPainel').value=mesAtual;irPara('2','5')};$('irPainel').onclick=()=>{$('mesPainel').value=mesAtual;irPara('2','5')};
   if($('irEntradas'))$('irEntradas').onclick=()=>{irPara('4');setTimeout(()=>$('entradasBox').scrollIntoView({behavior:'smooth',block:'start'}),300)};
   s.querySelectorAll('[data-i7]').forEach(b=>b.onclick=async()=>{const it=itens7[+b.dataset.i7];
     if(it.tipo==='entrada'||it.tipo==='conta'){abrirPagar(it);return}
@@ -1477,13 +1498,19 @@ async function salvarPdf(){
 }
 
 /* ---------- excluir lançamento ---------- */
+function tirarDaFila(item){const f=lerFila();let mudou=false;
+  f.forEach(lista=>{const i=lista.findIndex(l=>String(l.data).slice(0,10)===item.data&&l.descricao===item.descricao&&String(l.cartao||'')===String(item.cartao||''));if(i>=0){lista.splice(i,1);mudou=true}});
+  if(mudou)gravarFila(f.filter(l=>l.length));return mudou}
 async function excluirLanc(item){
+  ultimosDados=null;if(tirarDaFila(item))return;
   if(!MODO_TESTE){const j=await api({acao:'excluirLanc',item});
     if(!('excluidos' in j))throw new Error('Para excluir, atualize o Apps Script da planilha com o arquivo novo.');
-    if(!j.excluidos)throw new Error('Não achei esse lançamento na planilha.');return}
+    if(!j.excluidos)throw new Error('Não achei esse lançamento na planilha. Atualize o Apps Script com o arquivo novo e tente de novo.');return}
   const d=lerLocal(),dia=v=>String(v).slice(0,10);
   const i=d.lanc.map((r,ix)=>ix).reverse().find(ix=>{const r=d.lanc[ix];return dia(r[0])===item.data&&r[1]===item.descricao&&String(r[5]||'')===String(item.cartao||'')});
-  if(i==null)throw new Error('Não achei esse lançamento.');d.lanc.splice(i,1);
+  if(i!=null)d.lanc.splice(i,1);
+  if(i==null&&item.cartao){const n0=d.parc.length;d.parc=d.parc.filter(q=>!(dia(q[0])===item.data&&q[1]===item.descricao&&q[2]===item.cartao));if(d.parc.length===n0)throw new Error('Não achei esse lançamento.');memLocal=d;gravarLocal();return}
+  if(i==null)throw new Error('Não achei esse lançamento.');
   if(item.cartao){const vistos={};for(let j=d.parc.length-1;j>=0;j--){const q=d.parc[j];if(dia(q[0])===item.data&&q[1]===item.descricao&&q[2]===item.cartao&&!vistos[q[3]]){vistos[q[3]]=1;d.parc.splice(j,1)}}}
   gravarLocal();
 }
@@ -1542,8 +1569,11 @@ async function painel(){
   const porData=l=>[...l].sort((a,b)=>b.data.localeCompare(a.data));
   const lista=(l,agrupar)=>{if(!l.length)return'<p class="dica" style="padding:8px 0">Nada aqui neste mês.</p>';
     if(!agrupar)return porData(l).map(linha).join('');
-    const g={};l.forEach(i=>(g[i.onde]=g[i.onde]||[]).push(i));
-    return Object.entries(g).sort((a,b)=>tot(b[1])-tot(a[1])).map(([c,li])=>`<h4><span>${esc(c)}</span><span>${R(tot(li))}</span></h4>${porData(li).map(linha).join('')}`).join('')};
+    const g={};l.forEach(i=>(g[i.onde]=g[i.onde]||[]).push(i));const gr=Object.entries(g).sort((a,b)=>tot(b[1])-tot(a[1]));
+    // filtro por cartão: abre só com os totais; toque num cartão para ver as compras dele
+    return`<div class="filtroCartao" role="group" aria-label="Filtrar por cartão">${gr.map(([c,li],k)=>`<button type="button" data-fc="${k}" aria-pressed="false"><b>${esc(c)}</b><span>${R(tot(li))} · ${li.length}</span></button>`).join('')}${gr.length>1?`<button type="button" data-fc="todos" aria-pressed="false"><b>Todos</b><span>${R(tot(l))}</span></button>`:''}</div>
+      <p class="dica fcDica">Toque num cartão para ver as compras.</p>
+      ${gr.map(([c,li],k)=>`<div data-grupo="${k}" hidden><h4><span>${esc(c)}</span><span>${R(tot(li))}</span></h4>${porData(li).map(linha).join('')}</div>`).join('')}`};
   // contas fixas x variáveis
   const fx=M.todos.filter(i=>FIXAS.includes(i.cat)),vr=M.todos.filter(i=>!FIXAS.includes(i.cat)),tfx=tot(fx),tvr=tot(vr);
   const fxReal=fx.filter(i=>!i.prevista),fxCat=soma(fxReal,'cat'),faltam=FIXAS.filter(c=>!fxCat.some(([k])=>k===c)),tPrev=tot(M.previstas);
@@ -1583,6 +1613,9 @@ async function painel(){
   <h2 style="font-size:1.05rem;margin:8px 0 -4px">Detalhe do mês</h2>
   ${PARTES.map(p=>`<details class="bloco" id="bloco-${p[0]}"><summary><b class="ponto ${p[3]}"></b><b>${p[1]}</b><span class="num">${R(tot(p[2]))}</span><span class="q">${qtd(p[2].length)}</span></summary><div class="corpo">${lista(p[2],p[0]==='novas'||p[0]==='antigas')}</div></details>`).join('')}
   ${M.compras.length?`<details class="bloco" id="bloco-compras"><summary><b class="ponto p5"></b><b>Compras no cartão feitas em ${nomeMes(mes)}</b><span class="num">${R(tot(M.compras))}</span><span class="q">${qtd(M.compras.length)} · o valor entra no mês da fatura de cada cartão</span></summary><div class="corpo">${lista(M.compras,true)}</div></details>`:''}`;
+  s.querySelectorAll('.filtroCartao').forEach(fc=>{const corpo=fc.parentElement;fc.querySelectorAll('[data-fc]').forEach(b=>b.onclick=()=>{const k=b.dataset.fc,ativo=b.getAttribute('aria-pressed')==='true';
+    fc.querySelectorAll('[data-fc]').forEach(o=>o.setAttribute('aria-pressed','false'));if(!ativo)b.setAttribute('aria-pressed','true');
+    corpo.querySelectorAll('[data-grupo]').forEach(gp=>gp.hidden=ativo||(k!=='todos'&&gp.dataset.grupo!==k));corpo.querySelector('.fcDica').hidden=!ativo})});
   s.querySelectorAll('[data-abre]').forEach(b=>b.onclick=()=>{const el=$('bloco-'+b.dataset.abre);el.open=true;el.scrollIntoView({behavior:'smooth',block:'start'})});
   s.querySelectorAll('[data-pgfat]').forEach(b=>b.onclick=async()=>{const c=b.dataset.pgfat,pg=faturaPaga(c);b.disabled=true;b.textContent='Salvando…';
     try{await marcarPago(`${mes}|cartao|${c}`,!pg);toast(pg?`Fatura do ${c} voltou para em aberto.`:`Fatura do ${c} marcada como paga.`);painel()}catch(e){toast(e.message);b.disabled=false;b.textContent=pg?'Desfazer':'Marcar paga'}});
@@ -1765,8 +1798,9 @@ limparFormInv();
 $('limpar').onclick=()=>{memLocal={lanc:[],parc:[]};gravarLocal();toast('Dados de teste apagados.');fecharAjustes();recarregarVisivel()};
 ver();
 iniciarApp();
-if('serviceWorker' in navigator&&!PODE_TESTE)window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+</script>
+<script>
+if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
 </script>
 </body>
-
 </html>

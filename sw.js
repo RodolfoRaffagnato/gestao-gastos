@@ -1,41 +1,13 @@
-// Gestão de Gastos — guarda a tela do app no celular para abrir rápido.
-// Os dados (planilha e Banco Central) sempre vêm da internet, nunca do cache.
-const VERSAO = 'gastos-v20';
-const APP = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png', './icon-maskable-512.png', './apple-touch-icon.png', './favicon.png'];
-const EXTERNOS = [
-  'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js',
-  'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'
-];
-
-self.addEventListener('install', e => {
-  e.waitUntil((async () => {
-    const c = await caches.open(VERSAO);
-    await c.addAll(APP);
-    await Promise.all(EXTERNOS.map(u => fetch(u, { mode: 'no-cors' }).then(r => c.put(u, r)).catch(() => {})));
-    self.skipWaiting();
-  })());
-});
-
-self.addEventListener('activate', e => {
-  e.waitUntil((async () => {
-    for (const k of await caches.keys()) if (k !== VERSAO) await caches.delete(k);
-    await self.clients.claim();
-  })());
-});
-
-self.addEventListener('fetch', e => {
-  const req = e.request, url = new URL(req.url);
-  if (req.method !== 'GET') return;
-  if (/script\.google|googleusercontent|bcb\.gov\.br/.test(url.hostname)) return; // dados: direto da internet
-  // a tela do app: tenta a versão nova primeiro, sem internet usa a guardada
-  if (req.mode === 'navigate' || (url.origin === location.origin && url.pathname.endsWith('/index.html'))) {
-    e.respondWith(fetch(req).then(r => { const c = r.clone(); caches.open(VERSAO).then(x => x.put('./index.html', c)); return r; })
-      .catch(() => caches.match('./index.html')));
-    return;
-  }
-  // ícones, fontes e leitor de PDF: usa o guardado e atualiza por trás
-  e.respondWith(caches.match(req).then(salvo => {
-    const rede = fetch(req).then(r => { if (r && (r.ok || r.type === 'opaque')) { const c = r.clone(); caches.open(VERSAO).then(x => x.put(req, c)); } return r; }).catch(() => salvo);
-    return salvo || rede;
-  }));
+// Gestão de Gastos: guarda o app para abrir rápido, mas sempre busca a versão nova quando há internet.
+const VERSAO='gastos-v30';
+const FIXOS=['./','index.html','manifest.json','favicon.png','apple-touch-icon.png','icon-192.png','icon-512.png','icon-maskable-512.png',
+  'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js','https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'];
+self.addEventListener('install',e=>{e.waitUntil(caches.open(VERSAO).then(c=>Promise.all(FIXOS.map(u=>c.add(u).catch(()=>{})))).then(()=>self.skipWaiting()))});
+self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==VERSAO).map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});
+self.addEventListener('fetch',e=>{
+  const r=e.request,u=new URL(r.url);
+  if(r.method!=='GET'||/script\.google|googleusercontent|bcb\.gov\.br/.test(u.hostname))return; // planilha e Banco Central: sempre direto
+  if(r.mode==='navigate'||u.pathname.endsWith('/')||u.pathname.endsWith('index.html')){ // o app: rede primeiro, cópia guardada se estiver sem internet
+    e.respondWith(fetch(r).then(res=>{const c=res.clone();caches.open(VERSAO).then(k=>k.put('index.html',c));return res}).catch(()=>caches.match('index.html').then(x=>x||caches.match('./'))));return}
+  e.respondWith(caches.match(r).then(x=>x||fetch(r).then(res=>{if(res.ok&&(u.origin===location.origin||/cdnjs|fonts\.g/.test(u.hostname))){const c=res.clone();caches.open(VERSAO).then(k=>k.put(r,c))}return res})));
 });
