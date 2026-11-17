@@ -14,6 +14,7 @@
 <script src="https://cdn.jsdelivr.net/npm/firebase@13.1.0/firebase-app-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/firebase@13.1.0/firebase-auth-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/firebase@13.1.0/firebase-firestore-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/firebase@13.1.0/firebase-messaging-compat.js"></script>
 <title>Gestão de Gastos</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -488,6 +489,9 @@ button.lanc:active,button.linha:active,button.barra:active,.lanc.acao:active{bac
   <p class="dica" id="agendaInfo"></p>
   <button class="btn" id="btnAgenda" type="button">Ativar lembretes na Agenda</button>
   <button class="btn sec" id="btnAgendaOff" type="button" hidden>Remover lembretes da Agenda</button>
+  <button class="btn" id="btnAvisos" type="button" hidden>Ativar avisos neste celular</button>
+  <button class="btn sec" id="btnAvisoTeste" type="button" hidden>Mandar um aviso de teste</button>
+  <button class="btn sec" id="btnAvisosOff" type="button" hidden>Desligar avisos neste celular</button>
 </div>
 </section>
 
@@ -598,7 +602,7 @@ button.lanc:active,button.linha:active,button.barra:active,.lanc.acao:active{bac
     <button class="btn sec peq" id="ajLimparRegras" type="button">Apagar</button></div>
   </div>
   <div class="ajuste">
-    <div class="lin"><div><h3>Versão</h3><p class="dica">Gestão de Gastos 4.0</p></div></div>
+    <div class="lin"><div><h3>Versão</h3><p class="dica">Gestão de Gastos 4.1</p></div></div>
   </div>
   </div>
   <div id="ajCats" hidden>
@@ -923,6 +927,34 @@ const MSG_FB={'auth/invalid-credential':'E-mail ou senha incorretos.','auth/wron
   'auth/too-many-requests':'Muitas tentativas. Espere alguns minutos e tente de novo.','auth/network-request-failed':'Sem internet. Para entrar pela primeira vez neste aparelho, conecte-se.','auth/missing-password':'Digite a senha.'};
 const msgFb=e=>MSG_FB[e&&e.code]||(e&&e.message)||'Não deu certo.';
 
+/* avisos no celular: o servidor manda às 9h, 5 e 2 dias antes de cada vencimento */
+const URL_AVISO_TESTE='https://southamerica-east1-'+FIREBASE_CONFIG.projectId+'.cloudfunctions.net/avisoTeste';
+const podeAvisar=()=>'Notification' in window&&'serviceWorker' in navigator&&'PushManager' in window&&typeof firebase!=='undefined'&&!!firebase.messaging;
+function avisosInfo(){
+  const ativo=podeAvisar()&&Notification.permission==='granted'&&!!pegar('gg_aviso_token'),bloq=podeAvisar()&&Notification.permission==='denied';
+  $('btnAgenda').hidden=$('btnAgendaOff').hidden=true;$('btnAvisos').hidden=ativo||!podeAvisar();$('btnAvisoTeste').hidden=$('btnAvisosOff').hidden=!ativo;
+  $('agendaInfo').textContent=!podeAvisar()?'Para receber avisos no celular, instale o app na tela inicial (Ajustes › Instalar o app) e abra por lá.':
+    bloq?'As notificações deste app estão bloqueadas no celular. Libere em Configurações do celular › Notificações › navegador (Chrome) e volte aqui.':
+    ativo?'Ativados neste celular: todo dia às 9h você recebe um aviso das contas e faturas que vencem em 5 dias e em 2 dias, mesmo com o app fechado.':
+    'Receba um aviso no celular às 9h, 5 dias e 2 dias antes de cada conta fixa e fatura vencer, mesmo com o app fechado.';
+}
+async function salvarTokenAviso(tok){const F=firebase.firestore.FieldValue,velho=pegar('gg_aviso_token');
+  const campos={avisoTokens:F.arrayUnion(tok)};await fbCfgRef().set(campos,{merge:true});
+  if(velho&&velho!==tok)await fbCfgRef().set({avisoTokens:F.arrayRemove(velho)},{merge:true});guardar('gg_aviso_token',tok)}
+async function pegarTokenAviso(){const reg=await navigator.serviceWorker.ready;return firebase.messaging().getToken({serviceWorkerRegistration:reg})}
+$('btnAvisos').onclick=async()=>{const b=$('btnAvisos');b.disabled=true;b.textContent='Ativando…';
+  try{const p=await Notification.requestPermission();if(p!=='granted'){toast('Sem permissão, o celular não deixa o app mandar avisos.');return}
+    const tok=await pegarTokenAviso();if(!tok)throw new Error('O celular não devolveu o endereço de avisos.');await salvarTokenAviso(tok);toast('Avisos ativados neste celular.')}
+  catch(e){toast('Não consegui ativar os avisos: '+(e.message||e))}finally{b.disabled=false;b.textContent='Ativar avisos neste celular';avisosInfo()}};
+$('btnAvisoTeste').onclick=async()=>{const b=$('btnAvisoTeste');b.disabled=true;b.textContent='Mandando…';
+  try{const tk=await fbAuth.currentUser.getIdToken();const r=await fetch(URL_AVISO_TESTE,{method:'POST',headers:{Authorization:'Bearer '+tk}});const j=await r.json().catch(()=>({}));
+    if(r.ok&&j.enviados)toast('Aviso enviado. Ele chega em alguns segundos.');else if(j.erro==='sem_aparelho')toast('Este celular ainda não está cadastrado. Toque em Desligar e ative de novo.');else toast('O aviso não saiu. Confira se a instalação dos avisos terminou.')}
+  catch(e){toast('Os avisos ainda não estão instalados no servidor. Siga o passo a passo do chat.')}finally{b.disabled=false;b.textContent='Mandar um aviso de teste'}};
+$('btnAvisosOff').onclick=async()=>{const tok=pegar('gg_aviso_token');try{if(tok){await fbCfgRef().set({avisoTokens:firebase.firestore.FieldValue.arrayRemove(tok)},{merge:true});try{await firebase.messaging().deleteToken()}catch(e){}}}catch(e){}
+  try{localStorage.removeItem('gg_aviso_token')}catch(e){}toast('Avisos desligados neste celular.');avisosInfo()};
+// a cada entrada, confere se o endereço de avisos mudou
+async function renovarAvisos(){try{if(fbOn()&&podeAvisar()&&Notification.permission==='granted'&&pegar('gg_aviso_token')){const tok=await pegarTokenAviso();if(tok)await salvarTokenAviso(tok)}}catch(e){}}
+
 /* trazer os dados da planilha antiga para o banco novo (uma vez) */
 async function apiPlanilha(corpo){const c=new AbortController(),t=setTimeout(()=>c.abort(),60000);
   try{const r=await fetch(URL_PLANILHA,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(corpo),signal:c.signal});return await r.json()}
@@ -1015,7 +1047,7 @@ async function entrarFb(){
     if(fbCriando)await fbAuth.createUserWithEmailAndPassword(email,s1);else await fbAuth.signInWithEmailAndPassword(email,s1);
     guardar('gg_email',email);fbCriando=false;fbPararOuvir();
     $('travaApp').hidden=true;document.body.classList.remove('travado');
-    try{await fbPrimeiraVez();ultimosDados=null;ultimosDados=await carregar()}catch(e){}posEntrada();
+    try{await fbPrimeiraVez();ultimosDados=null;ultimosDados=await carregar()}catch(e){}posEntrada();renovarAvisos();
   }catch(e){st.textContent=msgFb(e)}finally{b.disabled=false;b.textContent=txt}
 }
 async function prepararTrava(msg){
@@ -1126,7 +1158,7 @@ function atualizarDepoisDeMudar(){ultimosDados=null;if(listaAtual)abrirLista(lis
 /* ---------- início ---------- */
 const visivel=n=>!document.querySelector(`[data-sec="${n}"]`).hidden;
 function recarregarVisivel(){ultimosDados=null;if(visivel('5'))inicio();if(visivel('2'))painel();if(visivel('4'))contas()}
-function posEntrada(){ultimosDados=null;atualizarAvisoFila();atualizarAlertas();enviarFila();if(visivel('5'))inicio();if(visivel('2'))painel()}
+function posEntrada(){if(location.hash==='#contas'){try{history.replaceState(null,'',location.pathname)}catch(e){}setTimeout(()=>irPara('4'),0)}ultimosDados=null;atualizarAvisoFila();atualizarAlertas();enviarFila();if(visivel('5'))inicio();if(visivel('2'))painel()}
 async function iniciarApp(){
   atualizarAvisoFila();
   if(!MODO_TESTE&&!tokenApp()){await prepararTrava();return}
@@ -1511,7 +1543,7 @@ $('neAdd').onclick=()=>{const nome=$('neNome').value.trim(),dia=diaValido($('neD
 ['neNome','neDia','neValor'].forEach(id=>$(id).addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();$('neAdd').click()}}));
 
 // lembretes na Agenda do Google
-function atualizarAgendaInfo(){if(fbOn()){$('agendaInfo').textContent='Os avisos de 5 e 2 dias antes aparecem aqui no app. Os lembretes na Agenda do Google voltam numa próxima versão.';$('btnAgenda').hidden=true;$('btnAgendaOff').hidden=true;return}const ativa=!!(AGENDA&&AGENDA.n!=null);
+function atualizarAgendaInfo(){if(fbOn()){avisosInfo();return}const ativa=!!(AGENDA&&AGENDA.n!=null);
   $('agendaInfo').textContent=MODO_TESTE?'Os lembretes na Agenda funcionam no app publicado.':ativa?`Ativados: ${AGENDA.n} ${AGENDA.n===1?'vencimento':'vencimentos'} na agenda "Contas a pagar", com aviso 5 dias e 2 dias antes, às 9h. Mudou um vencimento? Eles se atualizam sozinhos.`:'Crie os vencimentos na sua Agenda do Google, com aviso no celular 5 dias e 2 dias antes, mesmo com o app fechado.';
   $('btnAgenda').textContent=ativa?'Atualizar lembretes agora':'Ativar lembretes na Agenda';$('btnAgendaOff').hidden=!ativa||MODO_TESTE;$('btnAgenda').disabled=MODO_TESTE}
 $('btnAgenda').onclick=async()=>{const b=$('btnAgenda');b.disabled=true;b.textContent='Criando lembretes… pode levar até 1 minuto';
