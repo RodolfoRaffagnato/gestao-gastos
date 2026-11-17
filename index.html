@@ -251,6 +251,7 @@ details.bloco h4{margin:14px 0 0;padding-bottom:4px;font-size:.8125rem;font-weig
 .novocfg .chips label:has(input:checked){background:var(--field)}
 .travaApp{position:fixed;inset:0;z-index:60;background:var(--bg);display:grid;place-items:center;overflow:auto;padding:24px max(16px,env(safe-area-inset-right,0px)) 24px max(16px,env(safe-area-inset-left,0px))}
 .travaApp .trava{width:100%;max-width:380px}
+.emailAviso{padding-top:12px;border-top:1px solid var(--line)}.emailAviso label.check{max-width:none}
 .taLinks{display:flex;justify-content:space-between;gap:12px;width:100%;max-width:300px}
 .travado .wrap,.travado .tabbar{visibility:hidden}
 label.check{flex-direction:row;align-items:center;gap:10px;color:var(--fg);font-size:.9rem;width:100%;max-width:300px}
@@ -490,6 +491,11 @@ button.lanc:active,button.linha:active,button.barra:active,.lanc.acao:active{bac
   <button class="btn" id="btnAgenda" type="button">Ativar lembretes na Agenda</button>
   <button class="btn sec" id="btnAgendaOff" type="button" hidden>Remover lembretes da Agenda</button>
   <button class="btn" id="btnAvisos" type="button" hidden>Ativar avisos neste celular</button>
+  <div class="grid emailAviso" id="emailBox" hidden>
+    <label class="check"><input type="checkbox" id="avEmailOn"> Receber os avisos também por e-mail</label>
+    <label>E-mail que recebe os avisos<input type="email" id="avEmail" inputmode="email" autocapitalize="off" placeholder="voce@exemplo.com"></label>
+    <button class="btn sec" id="avEmailSalvar" type="button">Salvar e-mail</button>
+  </div>
   <button class="btn sec" id="btnAvisoTeste" type="button" hidden>Mandar um aviso de teste</button>
   <button class="btn sec" id="btnAvisosOff" type="button" hidden>Desligar avisos neste celular</button>
 </div>
@@ -602,7 +608,7 @@ button.lanc:active,button.linha:active,button.barra:active,.lanc.acao:active{bac
     <button class="btn sec peq" id="ajLimparRegras" type="button">Apagar</button></div>
   </div>
   <div class="ajuste">
-    <div class="lin"><div><h3>Versão</h3><p class="dica">Gestão de Gastos 4.1</p></div></div>
+    <div class="lin"><div><h3>Versão</h3><p class="dica">Gestão de Gastos 4.2</p></div></div>
   </div>
   </div>
   <div id="ajCats" hidden>
@@ -932,7 +938,9 @@ const URL_AVISO_TESTE='https://southamerica-east1-'+FIREBASE_CONFIG.projectId+'.
 const podeAvisar=()=>'Notification' in window&&'serviceWorker' in navigator&&'PushManager' in window&&typeof firebase!=='undefined'&&!!firebase.messaging;
 function avisosInfo(){
   const ativo=podeAvisar()&&Notification.permission==='granted'&&!!pegar('gg_aviso_token'),bloq=podeAvisar()&&Notification.permission==='denied';
-  $('btnAgenda').hidden=$('btnAgendaOff').hidden=true;$('btnAvisos').hidden=ativo||!podeAvisar();$('btnAvisoTeste').hidden=$('btnAvisosOff').hidden=!ativo;
+  const em=(FBS.cfg&&FBS.cfg.avisoEmail)||{},emAtivo=!!(em.ativo&&em.para);
+  $('btnAgenda').hidden=$('btnAgendaOff').hidden=true;$('btnAvisos').hidden=ativo||!podeAvisar();$('btnAvisosOff').hidden=!ativo;$('btnAvisoTeste').hidden=!(ativo||emAtivo);
+  $('emailBox').hidden=false;if(document.activeElement!==$('avEmail')){$('avEmail').value=em.para||(fbAuth.currentUser&&fbAuth.currentUser.email)||'';$('avEmailOn').checked=!!em.ativo}
   $('agendaInfo').textContent=!podeAvisar()?'Para receber avisos no celular, instale o app na tela inicial (Ajustes › Instalar o app) e abra por lá.':
     bloq?'As notificações deste app estão bloqueadas no celular. Libere em Configurações do celular › Notificações › navegador (Chrome) e volte aqui.':
     ativo?'Ativados neste celular: todo dia às 9h você recebe um aviso das contas e faturas que vencem em 5 dias e em 2 dias, mesmo com o app fechado.':
@@ -946,9 +954,14 @@ $('btnAvisos').onclick=async()=>{const b=$('btnAvisos');b.disabled=true;b.textCo
   try{const p=await Notification.requestPermission();if(p!=='granted'){toast('Sem permissão, o celular não deixa o app mandar avisos.');return}
     const tok=await pegarTokenAviso();if(!tok)throw new Error('O celular não devolveu o endereço de avisos.');await salvarTokenAviso(tok);toast('Avisos ativados neste celular.')}
   catch(e){toast('Não consegui ativar os avisos: '+(e.message||e))}finally{b.disabled=false;b.textContent='Ativar avisos neste celular';avisosInfo()}};
+$('avEmailSalvar').onclick=()=>{const para=$('avEmail').value.trim(),ativo=$('avEmailOn').checked;
+  if(ativo&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(para)){toast('Esse e-mail não parece certo.');$('avEmail').focus();return}
+  fbCfgSet({avisoEmail:{ativo,para}});toast(ativo?`Avisos por e-mail ligados para ${para}.`:'Avisos por e-mail desligados.');avisosInfo()};
+$('avEmailOn').onchange=()=>$('avEmailSalvar').click();
 $('btnAvisoTeste').onclick=async()=>{const b=$('btnAvisoTeste');b.disabled=true;b.textContent='Mandando…';
   try{const tk=await fbAuth.currentUser.getIdToken();const r=await fetch(URL_AVISO_TESTE,{method:'POST',headers:{Authorization:'Bearer '+tk}});const j=await r.json().catch(()=>({}));
-    if(r.ok&&j.enviados)toast('Aviso enviado. Ele chega em alguns segundos.');else if(j.erro==='sem_aparelho')toast('Este celular ainda não está cadastrado. Toque em Desligar e ative de novo.');else toast('O aviso não saiu. Confira se a instalação dos avisos terminou.')}
+    if(r.ok&&j.erroEmail)toast((j.enviados?'Aviso no celular enviado, mas o e-mail não saiu. ':'O e-mail não saiu. ')+'Falta configurar o Gmail de envio (passo a passo do chat).');
+    else if(r.ok&&(j.enviados||j.email))toast(j.enviados&&j.email?'Aviso enviado para o celular e para o e-mail.':j.email?'E-mail de teste enviado. Confira a caixa de entrada (e o spam).':'Aviso enviado. Ele chega em alguns segundos.');else if(j.erro==='sem_aparelho')toast('Este celular ainda não está cadastrado. Toque em Desligar e ative de novo.');else toast('O aviso não saiu. Confira se a instalação dos avisos terminou.')}
   catch(e){toast('Os avisos ainda não estão instalados no servidor. Siga o passo a passo do chat.')}finally{b.disabled=false;b.textContent='Mandar um aviso de teste'}};
 $('btnAvisosOff').onclick=async()=>{const tok=pegar('gg_aviso_token');try{if(tok){await fbCfgRef().set({avisoTokens:firebase.firestore.FieldValue.arrayRemove(tok)},{merge:true});try{await firebase.messaging().deleteToken()}catch(e){}}}catch(e){}
   try{localStorage.removeItem('gg_aviso_token')}catch(e){}toast('Avisos desligados neste celular.');avisosInfo()};
