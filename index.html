@@ -252,6 +252,9 @@ details.bloco h4{margin:14px 0 0;padding-bottom:4px;font-size:.8125rem;font-weig
 .travaApp{position:fixed;inset:0;z-index:60;background:var(--bg);display:grid;place-items:center;overflow:auto;padding:24px max(16px,env(safe-area-inset-right,0px)) 24px max(16px,env(safe-area-inset-left,0px))}
 .travaApp .trava{width:100%;max-width:380px}
 .emailAviso{padding-top:12px;border-top:1px solid var(--line)}.emailAviso label.check{max-width:none}
+.senhaBox{position:relative;display:block;width:100%}.senhaBox input{padding-right:52px}
+.olho{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:40px;height:40px;display:grid;place-items:center;border:0;background:none;color:var(--muted);cursor:pointer;border-radius:10px}
+.olho:focus-visible{outline:2px solid var(--fg)}
 .taLinks{display:flex;justify-content:space-between;gap:12px;width:100%;max-width:300px}
 .travado .wrap,.travado .tabbar{visibility:hidden}
 label.check{flex-direction:row;align-items:center;gap:10px;color:var(--fg);font-size:.9rem;width:100%;max-width:300px}
@@ -608,7 +611,7 @@ button.lanc:active,button.linha:active,button.barra:active,.lanc.acao:active{bac
     <button class="btn sec peq" id="ajLimparRegras" type="button">Apagar</button></div>
   </div>
   <div class="ajuste">
-    <div class="lin"><div><h3>Versão</h3><p class="dica">Gestão de Gastos 4.3</p></div></div>
+    <div class="lin"><div><h3>Versão</h3><p class="dica">Gestão de Gastos 4.4</p></div></div>
   </div>
   </div>
   <div id="ajCats" hidden>
@@ -1057,6 +1060,10 @@ function telaLoginFb(msg){
 $('taAlterna').onclick=()=>{fbCriando=!fbCriando;telaLoginFb()};
 $('taEsqueci').onclick=async()=>{const e=$('taEmail').value.trim();if(!e){$('taStatus').textContent='Digite seu e-mail e toque de novo em "Esqueci a senha".';$('taEmail').focus();return}
   try{await fbAuth.sendPasswordResetEmail(e);$('taStatus').textContent=`Mandamos um link para ${e}. Abra o e-mail, crie a senha nova e volte aqui.`}catch(err){$('taStatus').textContent=msgFb(err)}};
+let hashEntrada=null; // só na memória, para conferir que a senha dos investimentos é diferente
+async function igualEntrada(senha){if(!fbOn()||!senha)return false;
+  if(hashEntrada)return(await hashLocal('ent:'+senha))===hashEntrada;
+  try{const u=fbAuth.currentUser;await u.reauthenticateWithCredential(firebase.auth.EmailAuthProvider.credential(u.email,senha));return true}catch(e){return false}}
 async function entrarFb(){
   const email=$('taEmail').value.trim(),s1=$('taSenha').value,st=$('taStatus'),b=$('taEntrar');st.textContent='';
   if(!email){st.textContent='Digite seu e-mail.';$('taEmail').focus();return}
@@ -1065,7 +1072,7 @@ async function entrarFb(){
   b.disabled=true;const txt=b.textContent;b.textContent=fbCriando?'Criando conta…':'Entrando…';
   try{
     if(fbCriando)await fbAuth.createUserWithEmailAndPassword(email,s1);else await fbAuth.signInWithEmailAndPassword(email,s1);
-    guardar('gg_email',email);fbCriando=false;fbPararOuvir();
+    guardar('gg_email',email);fbCriando=false;fbPararOuvir();hashEntrada=await hashLocal('ent:'+s1);
     $('travaApp').hidden=true;document.body.classList.remove('travado');
     try{await fbPrimeiraVez();ultimosDados=null;ultimosDados=await carregar()}catch(e){}posEntrada();renovarAvisos();
   }catch(e){st.textContent=msgFb(e)}finally{b.disabled=false;b.textContent=txt}
@@ -1112,7 +1119,8 @@ window.addEventListener('pageshow',e=>{if(e.persisted&&$('travaApp').hidden)trav
 $('btnSair').onclick=async()=>{if(!MODO_TESTE){try{await api({acao:'sair'})}catch(e){}}esquecerToken();fecharAjustes();travarInv?.();prepararTrava('Você saiu deste aparelho.')};
 $('saTrocar').onclick=async()=>{const a=$('saAtual').value,n=$('saNova').value,b=$('saTrocar');
   if(fbOn()){if(n.length<6){toast('A senha nova precisa ter pelo menos 6 caracteres.');return}b.disabled=true;
-    try{const u=fbAuth.currentUser;await u.reauthenticateWithCredential(firebase.auth.EmailAuthProvider.credential(u.email,a));await u.updatePassword(n);$('saAtual').value=$('saNova').value='';toast('Senha trocada.')}
+    try{if(invSenha&&n===invSenha){toast('A senha de entrada precisa ser diferente da senha dos investimentos.');return}
+      const u=fbAuth.currentUser;await u.reauthenticateWithCredential(firebase.auth.EmailAuthProvider.credential(u.email,a));await u.updatePassword(n);hashEntrada=await hashLocal('ent:'+n);$('saAtual').value=$('saNova').value='';toast('Senha trocada.')}
     catch(e){toast(e.code==='auth/invalid-credential'||e.code==='auth/wrong-password'?'Senha atual incorreta.':msgFb(e))}finally{b.disabled=false}return}
   if(n.length<4){toast(MSG_APP.senha_curta);return}b.disabled=true;
   try{if(MODO_TESTE){if(pegar('gg_app_teste')!==await hashLocal('app:'+a)){toast('Senha atual incorreta.');return}guardar('gg_app_teste',await hashLocal('app:'+n))}
@@ -2034,9 +2042,13 @@ async function entrarInv(){
   if(s1.length<4){st.textContent=MSG_ERRO.senha_curta;return}
   if(!invTemSenha&&s1!==$('invSenha2').value){st.textContent='As duas senhas estão diferentes.';return}
   b.disabled=true;const txt=b.textContent;b.textContent='Abrindo...';
+  const mesma=await igualEntrada(s1);
+  if(!invTemSenha&&mesma){b.disabled=false;b.textContent=txt;st.textContent='Use uma senha diferente da senha de entrada do app. Assim, quem souber uma não abre os investimentos.';return}
   const j=await invApi({op:invTemSenha?'listar':'criarSenha',senha:s1});b.disabled=false;b.textContent=txt;
   if(j.erro){if(j.erro==='ja_tem_senha'){invTemSenha=true;abrirInvest()}st.textContent=msgErro(j);return}
   invTemSenha=true;invSenha=s1;receberInv(j);mostrarInv();
+  if(mesma){const d=$('novaSenha').closest('details');d.open=true;setTimeout(()=>{d.scrollIntoView({behavior:'smooth',block:'center'});$('novaSenha').focus()},300);
+    toast('Sua senha dos investimentos é igual à de entrada. Crie uma diferente aqui embaixo.')}
 }
 function travarInv(){invSenha=null;invItens=[];clearTimeout(invTimer);$('invResumo').innerHTML=$('invLista').innerHTML=$('invMeses').innerHTML='';limparFormInv();
   if(!document.querySelector('[data-sec="3"]').hidden)abrirInvest()}
@@ -2133,10 +2145,18 @@ $('btnPrem').onclick=async()=>{const pr={cdi:valorDigitado($('premCdi').value),i
   const j=await chamarInv({op:'premissas',premissas:pr},$('btnPrem'),'Salvando...');if(j&&!j.erro){toast('Taxas salvas. Elas não serão mais atualizadas sozinhas.');mostrarInv()}else if(j)toast(msgErro(j))};
 $('btnPremAuto').onclick=async()=>{const j=await chamarInv({op:'taxasAuto'},$('btnPremAuto'),'Buscando...');if(j&&!j.erro){toast(invPrem.erro?'Não consegui atualizar agora.':'Taxas atualizadas.');mostrarInv()}else if(j)toast(msgErro(j))};
 $('btnTrocarSenha').onclick=async()=>{const n=$('novaSenha').value;if(n.length<4){toast(MSG_ERRO.senha_curta);return}
+  if(await igualEntrada(n)){toast('Use uma senha diferente da senha de entrada do app.');return}
   const j=await chamarInv({op:'trocarSenha',novaSenha:n},$('btnTrocarSenha'),'Trocando...');if(j&&!j.erro){invSenha=n;$('novaSenha').value='';toast('Senha trocada.')}else if(j)toast(msgErro(j))};
 limparFormInv();
 
 $('limpar').onclick=()=>{memLocal={lanc:[],parc:[]};gravarLocal();toast('Dados de teste apagados.');fecharAjustes();recarregarVisivel()};
+// olhinho para ver a senha enquanto digita
+const IC_OLHO='<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>',
+  IC_OLHO_X='<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3l18 18"/><path d="M10.6 5.1A10.6 10.6 0 0 1 12 5c6.4 0 10 7 10 7a17 17 0 0 1-3.2 4.1M6.6 6.6A17.4 17.4 0 0 0 2 12s3.6 7 10 7a9.8 9.8 0 0 0 5.4-1.6"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>';
+document.querySelectorAll('input[type=password]').forEach(inp=>{const box=document.createElement('span');box.className='senhaBox';inp.parentNode.insertBefore(box,inp);box.appendChild(inp);
+  const b=document.createElement('button');b.type='button';b.className='olho';b.innerHTML=IC_OLHO;b.setAttribute('aria-label','Mostrar senha');b.setAttribute('aria-pressed','false');
+  b.onclick=e=>{e.preventDefault();const ver=inp.type==='password';inp.type=ver?'text':'password';b.innerHTML=ver?IC_OLHO_X:IC_OLHO;b.setAttribute('aria-label',ver?'Esconder senha':'Mostrar senha');b.setAttribute('aria-pressed',String(ver));inp.focus()};
+  box.appendChild(b)});
 ver();
 iniciarApp();
 </script>

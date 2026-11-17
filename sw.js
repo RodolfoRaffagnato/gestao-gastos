@@ -1,5 +1,5 @@
 // Gestão de Gastos: guarda o app para abrir rápido, mas sempre busca a versão nova quando há internet.
-const VERSAO='gastos-v43';
+const VERSAO='gastos-v44';
 const FIXOS=['./','index.html','manifest.json','favicon.png','apple-touch-icon.png','icon-192.png','icon-512.png','icon-maskable-512.png',
   'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js','https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js',
   'https://cdn.jsdelivr.net/npm/firebase@13.1.0/firebase-app-compat.js','https://cdn.jsdelivr.net/npm/firebase@13.1.0/firebase-auth-compat.js','https://cdn.jsdelivr.net/npm/firebase@13.1.0/firebase-firestore-compat.js','https://cdn.jsdelivr.net/npm/firebase@13.1.0/firebase-messaging-compat.js'];
