@@ -425,7 +425,27 @@ button:focus-visible,.chips label:has(input:focus-visible),summary:focus-visible
 .kpis2 .k:not(.hero) .v{font-size:clamp(1.15rem,5.4vw,1.5rem)}
 .kpis2 .k .r{line-height:1.3}
 .compos .linha{align-items:center;padding:11px 0}
-.compos .linha>span:first-child{display:flex;align-items:center;gap:10px;min-width:0}
+.rotPonto{display:flex;align-items:flex-start;gap:10px;min-width:0;text-align:left}
+.rotPonto>.ponto{flex:none;margin-top:.42em}.rotPonto>span{min-width:0}
+.linha>.num{flex:none}
+.p0{background:var(--muted-2)}
+.nw{white-space:nowrap}
+/* rendimento mês a mês: lista que cabe em qualquer celular, sem rolagem de lado */
+.mesesL{margin-top:8px}
+.ml{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:2px 14px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line);font-size:.875rem}
+.ml:last-child{border-bottom:0}
+.ml .num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.ml.cab{color:var(--muted);font-size:.75rem;font-weight:500;padding-top:0}
+.ml .mini{display:block;height:3px;border-radius:2px;background:var(--c-fixas);margin:5px 0 0 auto;max-width:100%}
+.ml.resgate{display:block;margin:6px 0;padding:10px 12px;border:0;border-radius:12px;background:var(--good-soft);color:var(--good);font-weight:600;line-height:1.35}
+[data-anim] .ml .mini{transform-origin:right center;animation:cresce .7s var(--ease) both}
+/* campos de data e mês não vazam do layout (Android e iPhone desenham por conta própria) */
+input[type=date],input[type=month]{-webkit-appearance:none;appearance:none;display:block;width:100%;max-width:100%;min-width:0;text-align:left;line-height:46px}
+input[type=date]::-webkit-date-and-time-value,input[type=month]::-webkit-date-and-time-value{text-align:left;margin:0}
+input[type=date]::-webkit-datetime-edit,input[type=month]::-webkit-datetime-edit{padding:0}
+input[type=date]::-webkit-calendar-picker-indicator,input[type=month]::-webkit-calendar-picker-indicator{opacity:.55;margin-left:auto}
+.mesnav input[type=month]{width:auto;flex:1;max-width:220px;text-align:center}
+.mesnav input[type=month]::-webkit-date-and-time-value{text-align:center}
 .compos .ponto{flex:none}
 .ver{display:inline-block;transition:transform .2s var(--ease)}
 button.linha:active .ver,button.barra:active .ver{transform:translateX(3px)}
@@ -434,7 +454,7 @@ button.linha:active .ver,button.barra:active .ver{transform:translateX(3px)}
 .itemcfg.fixa{padding:12px 0}
 .itemcfg.semDados{display:none}
 .mostrarMais .itemcfg.semDados{display:flex}
-.btnMais{margin-top:8px}
+.btnMais{margin-top:8px;width:100%}
 .conta .dia{background:var(--field)}
 .pill{letter-spacing:.01em}
 details.explica{margin-top:4px}
@@ -721,7 +741,7 @@ html[data-dir="tras"]::view-transition-new(root){animation-name:vtEntraTras}
     <button class="btn sec peq" id="ajLimparRegras" type="button">Apagar</button></div>
   </div>
   <div class="ajuste">
-    <div class="lin"><div><h3>Versão</h3><p class="dica">Gestão de Gastos 4.5</p></div></div>
+    <div class="lin"><div><h3>Versão</h3><p class="dica">Gestão de Gastos 4.6</p></div></div>
   </div>
   </div>
   <div id="ajCats" hidden>
@@ -1605,7 +1625,7 @@ async function contas(){
 }
 // contas fixas e vencimentos (só contas fixas)
 let rascunhoVenc={}; // { conta: {venc, valor} } digitados e ainda não salvos
-const valorTexto=v=>v===''||v==null||!+v?'':String(Math.round(+v*100)/100).replace('.',',');
+const valorTexto=v=>v===''||v==null||!+v?'':(+v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
 function renderFixas(){renderLista('listaFixas','Fixa');renderLista('listaEntradas','Entrada');botaoVencimentos()}
 const mostrarVazias={};
 function renderLista(alvo,tipo){
@@ -1618,7 +1638,7 @@ function renderLista(alvo,tipo){
       <label class="diac">Dia<input inputmode="numeric" maxlength="2" value="${esc(atual(c,'venc'))}" placeholder="–" data-campo="venc" data-nome="${esc(c.nome)}" aria-label="${ent?'Dia em que cai':'Dia de vencimento de'} ${esc(c.nome)}"${mud(c,'venc')}></label>
       <label class="diac valor">R$<input inputmode="decimal" value="${esc(atual(c,'valor'))}" placeholder="0,00" data-campo="valor" data-nome="${esc(c.nome)}" aria-label="Valor previsto de ${esc(c.nome)}"${mud(c,'valor')}></label>
       <span class="bts"><button type="button" class="x" data-delfix="${i}" aria-label="Excluir ${esc(c.nome)}">${IC_LIXO}</button></span></span></div>`).join('')
-      +(esconder?`<button type="button" class="btn sec peq btnMais" data-mais="${alvo}">Mostrar mais ${nVazias} ${nVazias===1?'conta sem dia e valor':'contas sem dia e valor'}</button>`:'')
+      +(esconder?`<button type="button" class="btn sec peq btnMais" data-mais="${alvo}">Mostrar mais ${nVazias} ${nVazias===1?'conta':'contas'}</button>`:'')
     :`<p class="dica">${ent?'Nenhuma entrada fixa ainda. Cadastre seu salário abaixo.':'Nenhuma conta fixa ainda. Cadastre a primeira abaixo.'}</p>`;
   const L=$(alvo);
   L.querySelectorAll('[data-mais]').forEach(b=>b.onclick=()=>{mostrarVazias[alvo]=true;renderLista(alvo,tipo)});
@@ -1680,7 +1700,7 @@ $('neAdd').onclick=()=>{const nome=$('neNome').value.trim(),dia=diaValido($('neD
   if(Number.isNaN(dia)){toast('O dia precisa ser de 1 a 31.');return}
   if(nomeRepetido(CFG.categorias,nome,-1)){const c=CFG.categorias.find(x=>semAcento(x.nome)===semAcento(nome));if(!(c&&c.tipo==='Entrada')){toast('Já existe uma categoria com esse nome.');return}
     const novo=copiaCfg(),k=novo.categorias.find(x=>x.nome===c.nome);k.venc=dia;k.valor=valor||'';
-    mudarCfg(novo,{},`${c.nome} atualizada.`,()=>{$('neNome').value=$('neDia').value=$('neValor').value='';contas()});return}
+    mudarCfg(novo,{},`Entrada fixa atualizada: ${c.nome}.`,()=>{$('neNome').value=$('neDia').value=$('neValor').value='';contas()});return}
   const novo=copiaCfg();novo.categorias.push({nome,tipo:'Entrada',venc:dia,valor:valor||''});
   mudarCfg(novo,{},`${nome} adicionada${valor?`, ${R(valor)} por mês`:''}.`,()=>{$('neNome').value=$('neDia').value=$('neValor').value='';contas()})};
 ['neNome','neDia','neValor'].forEach(id=>$(id).addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();$('neAdd').click()}}));
@@ -1700,7 +1720,7 @@ function atualizarAlertas(){
   const lista=[...vencimentosDoMes(ultimosDados,mesAtual),...vencimentosDoMes(ultimosDados,somaMes(mesAtual,1))].filter(i=>!i.pago&&diasAte(i.data)<=5&&diasAte(i.data)>=-31);
   if(!lista.length){box.hidden=true;return}
   const urg=lista.some(i=>diasAte(i.data)<=2);box.className='alertas'+(urg?' urgente':'');
-  box.innerHTML=`<button type="button" class="corpo" id="alertaIr"><b>${lista.length===1?'Conta para pagar':`${lista.length} contas para pagar`}</b>${lista.slice(0,3).map(i=>`<span>${esc(i.nome)}: ${situacao(i)[1].toLowerCase()}${i.valor?` · ${R(i.valor)}`:''}</span>`).join('')}${lista.length>3?`<span>e mais ${lista.length-3}</span>`:''}</button><button type="button" class="fechar" id="alertaFechar" aria-label="Fechar alerta">×</button>`;
+  box.innerHTML=`<button type="button" class="corpo" id="alertaIr"><b>${lista.length===1?'Conta para pagar':`${lista.length} contas para pagar`}</b>${lista.slice(0,3).map(i=>`<span>${esc(i.nome)}: ${situacao(i)[1].toLowerCase()}${i.valor?` · <span class="nw">${R(i.valor)}</span>`:''}</span>`).join('')}${lista.length>3?`<span>e mais ${lista.length-3}</span>`:''}</button><button type="button" class="fechar" id="alertaFechar" aria-label="Fechar alerta">×</button>`;
   box.hidden=false;
   $('alertaIr').onclick=()=>irPara('4');
   $('alertaFechar').onclick=()=>{alertasFechados=true;box.hidden=true};
@@ -1787,7 +1807,7 @@ async function inicio(){
       <div class="k falta${r.falta>0?'':' zero'}"><div class="sub">Falta pagar</div><div class="v" id="kFalta"><small>R$</small>${R(r.falta).replace(/^R\$\s?/,'')}</div><div class="r">já pago ${R(r.jaPago)}</div></div>
       <div class="k prox"><div class="sub">Para ${nomeMes(somaMes(mes,1))}</div><div class="v" id="kProx"><small>R$</small>${R(r.proxMes).replace(/^R\$\s?/,'')}</div><div class="r">fixas + cartão</div></div>
     </div>
-    <div class="compos">${comp.map(([n,v,c],k)=>`<button type="button" class="linha" data-comp="${k}"><span><b class="ponto ${c}"></b>&nbsp; ${n}</span><span class="num">${R(v)} <span class="ver" aria-hidden="true">›</span></span></button>`).join('')}
+    <div class="compos">${comp.map(([n,v,c],k)=>`<button type="button" class="linha" data-comp="${k}"><span class="rotPonto"><b class="ponto ${c}"></b><span>${n}</span></span><span class="num">${R(v)} <span class="ver" aria-hidden="true">›</span></span></button>`).join('')}
       <div class="linha soma"><span>Gastos do mês</span><span class="num">${R(r.saidas)}</span></div></div>
     ${temEntradas?`<div class="pagobar"><div class="linha"><span>Entradas do mês</span><span class="num">${R(r.entradas)}</span></div>
       <div class="linha sub2"><span>recebido · a receber</span><span class="num">${R(r.E.recebido)} · ${R(r.E.aReceber)}</span></div>
@@ -2052,9 +2072,9 @@ async function painel(manter){
   const fx=M.todos.filter(i=>FIXAS.includes(i.cat)),vr=M.todos.filter(i=>!FIXAS.includes(i.cat)),tfx=tot(fx),tvr=tot(vr);
   const fxReal=fx.filter(i=>!i.prevista),fxCat=soma(fxReal,'cat'),faltam=FIXAS.filter(c=>!fxCat.some(([k])=>k===c)),tPrev=tot(M.previstas);
   const blocoFixas=`<div class="card"><h2>Contas fixas e variáveis</h2>
-    <div class="pilha" role="img" aria-label="Divisão entre contas fixas e variáveis">${tfx?`<i class="p1" style="width:${pct(tfx)}%"></i>`:''}${tvr?`<i class="p2" style="width:${pct(tvr)}%"></i>`:''}</div>
-    <div style="margin-top:6px"><div class="linha"><span><b class="ponto p1"></b>&nbsp; Contas fixas</span><span class="num"><b>${R(tfx)}</b> <span class="dica">${Math.round(pct(tfx))}%</span></span></div>
-    <div class="linha"><span><b class="ponto p2"></b>&nbsp; Contas variáveis</span><span class="num"><b>${R(tvr)}</b> <span class="dica">${Math.round(pct(tvr))}%</span></span></div></div>
+    <div class="pilha" role="img" aria-label="Divisão entre contas fixas e variáveis">${tfx?`<i class="p4" style="width:${pct(tfx)}%"></i>`:''}${tvr?`<i class="p0" style="width:${pct(tvr)}%"></i>`:''}</div>
+    <div style="margin-top:6px"><div class="linha"><span class="rotPonto"><b class="ponto p4"></b><span>Contas fixas</span></span><span class="num"><b>${R(tfx)}</b> <span class="dica">${Math.round(pct(tfx))}%</span></span></div>
+    <div class="linha"><span class="rotPonto"><b class="ponto p0"></b><span>Contas variáveis</span></span><span class="num"><b>${R(tvr)}</b> <span class="dica">${Math.round(pct(tvr))}%</span></span></div></div>
     ${fxCat.length?`<h3 style="font-size:.875rem;color:var(--muted);font-weight:500;margin:16px 0 0">Contas fixas lançadas</h3>${fxCat.map(([c,v])=>`<button type="button" class="linha" data-fxcat="${esc(c)}"><span>${esc(c)}</span><span class="num">${R(v)} <span class="ver" aria-hidden="true">›</span></span></button>`).join('')}`:''}
     ${tPrev?`<div class="linha"><span>Previstas, ainda não pagas (${M.previstas.length})</span><span class="num">${R(tPrev)}</span></div>`:''}
     ${faltam.length?`<p class="dica" style="margin-top:12px">Ainda sem pagamento em ${nomeMes(mes)}: ${faltam.join(', ')}.</p>`:'<p class="ok" style="margin-top:12px">Todas as contas fixas do mês foram pagas.</p>'}
@@ -2238,9 +2258,9 @@ function renderInv(){
     linhas.push({m,rend,saldo,saem})}
   const mx=Math.max(...linhas.map(l=>l.rend),1),mostrar=invTodosMeses?linhas:linhas.slice(0,24);
   $('invMeses').innerHTML=`<div class="card"><h2>Rendimento mês a mês até a retirada</h2><p class="dica">Valores antes do imposto. O IR só é descontado quando você retira.</p>
-    <div class="tabela"><table class="meses"><tr><th>Mês</th><th class="num">Rende no mês</th><th class="num">Saldo no fim do mês</th></tr>
-    ${mostrar.map(l=>`<tr><td>${nomeMes(l.m)}</td><td class="num">${R(l.rend)}<span class="mini" style="width:${Math.max(4,l.rend/mx*100)}%;margin-left:auto"></span></td><td class="num">${R(l.saldo)}</td></tr>${l.saem.map(i=>`<tr class="resgate"><td colspan="3">Retirada de ${esc(i.nome||i.tipo)} em ${dataBR(i.retirada)}: ${R(naRetirada(i).liquido)} líquido</td></tr>`).join('')}`).join('')}
-    </table></div>${linhas.length>24?`<button class="btn sec" id="btnTodosMeses" type="button" style="margin-top:12px">${invTodosMeses?'Mostrar só 24 meses':`Ver todos os ${linhas.length} meses`}</button>`:''}</div>`;
+    <div class="mesesL"><div class="ml cab"><span>Mês</span><span class="num">Rende no mês</span><span class="num">Saldo no fim</span></div>
+    ${mostrar.map(l=>`<div class="ml"><span>${nomeMes(l.m)}</span><span class="num">${R(l.rend)}<i class="mini" style="width:${Math.max(6,l.rend/mx*100)}%"></i></span><span class="num">${R(l.saldo)}</span></div>${l.saem.map(i=>`<div class="ml resgate">Retirada de ${esc(i.nome||i.tipo)} em ${dataBR(i.retirada)}: ${R(naRetirada(i).liquido)} líquido</div>`).join('')}`).join('')}
+    </div>${linhas.length>24?`<button class="btn sec" id="btnTodosMeses" type="button" style="margin-top:12px">${invTodosMeses?'Mostrar só 24 meses':`Ver todos os ${linhas.length} meses`}</button>`:''}</div>`;
   if($('btnTodosMeses'))$('btnTodosMeses').onclick=()=>{invTodosMeses=!invTodosMeses;renderInv()};
 }
 
